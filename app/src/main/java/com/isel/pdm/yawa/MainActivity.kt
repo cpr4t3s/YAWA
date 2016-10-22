@@ -85,15 +85,14 @@ class MainActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item : MenuItem) : Boolean {
         when(item.itemId) {
-            R.id.settings_addCity -> {
-                val i = Intent(this, CitiesActivity::class.java)
-                startActivity(i)
-            }
+            // change city
+            R.id.settings_addCity -> startActivity(Intent(this, CitiesActivity::class.java))
+            // show forecast weather
             R.id.settings_forecast -> startActivity(Intent(this, ForecastActivity::class.java))
+            // refresh weather
+            R.id.settings_refresh -> application.weatherManager.refreshCurrentWeather(callbackSet)
             //TODO activity com os dados
             R.id.settings_about -> Toast.makeText(this, "About!!!!!!!!!", Toast.LENGTH_SHORT).show()
-
-
         }
         return true
     }
