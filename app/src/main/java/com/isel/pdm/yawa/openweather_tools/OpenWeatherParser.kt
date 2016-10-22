@@ -1,11 +1,9 @@
 package com.isel.pdm.yawa.openweather_tools
 
-import android.content.Context
 import android.graphics.Bitmap
 import com.isel.pdm.yawa.DataContainers.CityDO
 
 import com.isel.pdm.yawa.DataContainers.WeatherStateDO
-import com.isel.pdm.yawa.R
 import com.isel.pdm.yawa.iterator
 
 import org.json.JSONArray
@@ -16,7 +14,6 @@ import java.util.*
 object OpenWeatherParser {
 
     private fun buildWeatherStateDO(weather: JSONObject, weatherDescription: JSONObject, wind: JSONObject) : WeatherStateDO {
-        println(weatherDescription)
         return WeatherStateDO(
                 weatherDescription.getString("main"),
                 weatherDescription.getString("description"),

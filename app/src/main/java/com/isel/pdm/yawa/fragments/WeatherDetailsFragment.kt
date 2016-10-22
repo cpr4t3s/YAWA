@@ -15,7 +15,7 @@ class WeatherDetailsFragment : Fragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
-            return inflater.inflate(R.layout.weather_detail_fragment_layout, container, true)
+            return inflater.inflate(R.layout.weather_detail_fragment_layout, container, false)
     }
 
     /**
