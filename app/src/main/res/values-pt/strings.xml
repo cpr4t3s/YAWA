@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="weather_main">Estado do Tempo</string>
+    <string name="weather_description">Descrição</string>
+    <string name="weather_temp_current">Temperatura Actual</string>
+    <string name="weather_temp_max">Temperatura Máxima</string>
+    <string name="weather_temp_min">Temperatura Mínima</string>
+    <string name="weather_humidity">Humidade</string>
+    <string name="weather_wind_speed">Velocidade do Vento</string>
+    <string name="weather_pressure">Pressão</string>
+    <string name="weather_seaLevel">Nivel do mar</string>
+    <string name="weather_groundLevel">Nivel da terra</string>
+    <string name="weather_windDegree">Angulo do vento</string>
+
+    <string name="settings_setCity">Configurar Cidade</string>
+
+    <string name="message_on_exit">Pressione novamente para sair</string>
+    <string name="settings_about">Sobre</string>
+</resources>

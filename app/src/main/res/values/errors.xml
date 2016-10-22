@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="error1001">An error occurs getting current weather!</string>
+    <string name="error1002">Unable to accomplish the search!</string>
+    <string name="error1003">Unable to finish the operation!</string>
+</resources>

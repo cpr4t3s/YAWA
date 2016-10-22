@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">YAWA</string>
+    <string name="weather_description">Description</string>
+    <string name="weather_humidity">Humidity</string>
+    <string name="weather_main">Weather</string>
+    <string name="weather_temp_current">Current Temperature</string>
+    <string name="weather_temp_max">Maximum Temperature</string>
+    <string name="weather_temp_min">Minimum Temperature</string>
+    <string name="weather_wind_speed">Wind Speed</string>
+    <string name="weather_pressure">pressure</string>
+    <string name="weather_seaLevel">seaLevel</string>
+    <string name="weather_groundLevel">groundLevel</string>
+    <string name="weather_windDegree">windDegree</string>
+    <string name="settings_setCity">Config City</string>
+    <string name="settings_about">About</string>
+
+    <string name="message_on_exit">Press again to exit</string>
+</resources>
