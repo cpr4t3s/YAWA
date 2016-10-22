@@ -29,6 +29,8 @@
                 android:value="com.isel.pdm.yawa.MainActivity" />
 
         </activity>
+        <activity android:name=".ForecastActivity">
+        </activity>
     </application>
 
 </manifest>

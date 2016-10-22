@@ -8,17 +8,17 @@ import com.isel.pdm.yawa.fragments.CitiesListFragment
 
 class ForecastActivity : AppCompatActivity(){
 
-    private val refreshButton by lazy { findViewById(R.id.btnSearchCity) as ImageButton }
-    private val listFragment by lazy { fragmentManager.findFragmentById(R.id.cities_list_frag) as CitiesListFragment }
+    //private val refreshButton by lazy { findViewById(R.id.btnSearchCity) as ImageButton }
+  //  private val listFragment by lazy { fragmentManager.findFragmentById(R.id.cities_list_frag) as CitiesListFragment }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_forcast)
+        setContentView(R.layout.activity_forecast)
 
         // Search Button
-        refreshButton.setOnClickListener {
-            listFragment.doSearch()
-        }
+      //  refreshButton.setOnClickListener {
+           // listFragment.doSearch()
+        //}
     }
 
     override fun onSaveInstanceState(outState : Bundle) {

@@ -3,6 +3,10 @@
     <item android:id="@+id/settings_addCity"
         android:title="@string/settings_setCity"/>
 
+    <item android:id="@+id/settings_forecast"
+        android:title="@string/settings_forecast"/>
+
     <item android:id="@+id/settings_about"
         android:title="@string/settings_about"/>
+
 </menu>
