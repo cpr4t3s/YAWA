@@ -44,6 +44,7 @@ class MainActivity : AppCompatActivity() {
 
         val imgButtonRefresh = findViewById(R.id.imageButtonRefresh) as ImageButton
         imgButtonRefresh.setOnClickListener { application.weatherManager.refreshCurrentWeather(callbackSet) }
+
     }
 
     override fun onStop() {
@@ -82,11 +83,14 @@ class MainActivity : AppCompatActivity() {
                 startActivity(i)
             }
 
-            //
-            R.id.settings_about -> Toast.makeText(this, "About!!!!!!!!!", Toast.LENGTH_SHORT).show()
-        }
+            R.id.settings_forecast -> startActivity(Intent(this, ForecastActivity::class.java))
 
-        return true;
+            //TODO activity com os dados
+            R.id.settings_about -> Toast.makeText(this, "About!!!!!!!!!", Toast.LENGTH_SHORT).show()
+
+
+        }
+        return true
     }
 
     override fun onResume() {
