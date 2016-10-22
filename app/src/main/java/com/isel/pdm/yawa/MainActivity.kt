@@ -4,8 +4,8 @@ import android.content.Context
 import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.support.v4.widget.SwipeRefreshLayout
 import android.view.*
-import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 
@@ -24,9 +24,13 @@ class MainActivity : AppCompatActivity() {
     private val txtTitleCity by lazy { findViewById(R.id.txtTitleCity) as TextView }
     private val weatherFragment by lazy { fragmentManager.findFragmentById(R.id.weather_detail)
             as WeatherDetailsFragment }
+    private val swR by lazy { findViewById(R.id.current_weather_swiperefresh) as SwipeRefreshLayout }
     private val callbackSet : ICallbackSet by lazy {
         object : ICallbackSet {
             override fun onError(error: VolleyError) {
+                // stop the refresh animation
+                swR.isRefreshing = false
+                //
                 Toast.makeText(this@MainActivity,
                         resources.getString(R.string.error1001), Toast.LENGTH_SHORT).show()
             }
@@ -34,6 +38,8 @@ class MainActivity : AppCompatActivity() {
             override fun onSucceed(response: Any) {
                 val weatherState = response as WeatherStateDO
                 weatherFragment.updateUI(weatherState)
+                // stop the refresh animation
+                swR.isRefreshing = false
             }
         }
     }
@@ -42,8 +48,9 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_weather__main_menu_)
 
-        val imgButtonRefresh = findViewById(R.id.imageButtonRefresh) as ImageButton
-        imgButtonRefresh.setOnClickListener { application.weatherManager.refreshCurrentWeather(callbackSet) }
+        swR.setOnRefreshListener(
+                { application.weatherManager.refreshCurrentWeather(callbackSet) })
+
 
     }
 
@@ -82,9 +89,7 @@ class MainActivity : AppCompatActivity() {
                 val i = Intent(this, CitiesActivity::class.java)
                 startActivity(i)
             }
-
             R.id.settings_forecast -> startActivity(Intent(this, ForecastActivity::class.java))
-
             //TODO activity com os dados
             R.id.settings_about -> Toast.makeText(this, "About!!!!!!!!!", Toast.LENGTH_SHORT).show()
 

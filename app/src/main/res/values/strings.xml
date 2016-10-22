@@ -14,6 +14,7 @@
     <string name="settings_setCity">Config City</string>
     <string name="settings_about">About</string>
     <string name="settings_forecast">Forecast</string>
+    <string name="settings_refresh">Refresh</string>
 
     <string name="message_on_exit">Press again to exit</string>
 </resources>
