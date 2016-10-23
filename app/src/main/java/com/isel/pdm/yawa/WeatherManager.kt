@@ -13,7 +13,6 @@ import com.android.volley.toolbox.JsonObjectRequest
 import com.isel.pdm.yawa.DataContainers.ForecastDO
 import com.isel.pdm.yawa.DataContainers.WeatherStateDO
 import com.isel.pdm.yawa.openweather_tools.OpenWeatherParser
-import com.isel.pdm.yawa.openweather_tools.OpenWeatherRequester
 import com.isel.pdm.yawa.openweather_tools.URLTranslator
 
 import org.json.JSONObject

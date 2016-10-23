@@ -1,5 +1,6 @@
 package com.isel.pdm.yawa.fragments
 
+import android.app.FragmentTransaction
 import android.app.ListFragment
 import android.content.Context
 import android.os.Bundle
@@ -41,12 +42,13 @@ class ForecastFragment : ListFragment() {
                               savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.forecast_fragment_layout, container, false)
     }
+
     private fun buildListViewDataSet(forecastList: ForecastDO) : ArrayList<Map<String, String>> {
         val retList = ArrayList<Map<String, String>>()
         for(forecastDO: WeatherStateDO in forecastList.weatherStateDOList) {
             // Converte Unix seconds to Date
             val date = DateConverter.unixSecondsToDateString(forecastDO.date,
-                    TimeZone.getTimeZone("GMT"), SimpleDateFormat("yyyy-MM-dd HH:mm:ss"))
+                     TimeZone.getDefault(), SimpleDateFormat("yyyy-MM-dd HH:mm:ss"))
             retList.add(
                     mapOf(
                             Pair(IWeatherManager.DATE_KEY, date),
@@ -83,7 +85,16 @@ class ForecastFragment : ListFragment() {
         println("------------ Position")
         println(position)
         println(id)
-        println(DateConverter.unixSecondsToDateString(activity.application.weatherManager.getLocalForecastWeather().weatherStateDOList[position].date, TimeZone.getTimeZone("GMT"), SimpleDateFormat("yyyy-MM-dd HH:mm:ss")))
+        val weatherDO = activity.application.weatherManager.getLocalForecastWeather().weatherStateDOList[position]
+        println(DateConverter.unixSecondsToDateString(weatherDO.date, TimeZone.getDefault(), SimpleDateFormat("yyyy-MM-dd HH:mm:ss")))
+
+
+        val newFragment = WeatherDetailsFragment()
+        fragmentManager.beginTransaction().replace(R.id.forecast_data_holder, newFragment)
+                .addToBackStack(null)
+                .commit()
+
+        newFragment.weatherDO = weatherDO
     }
 
 }
