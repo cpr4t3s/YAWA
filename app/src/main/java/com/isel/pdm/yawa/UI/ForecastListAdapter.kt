@@ -2,23 +2,20 @@ package com.isel.pdm.yawa.UI
 
 import android.app.Activity
 import android.content.Context
+import android.graphics.Bitmap
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.ImageView
 import android.widget.TextView
-import com.android.volley.VolleyError
-import com.isel.pdm.yawa.DataContainers.WeatherStateDO
-import com.isel.pdm.yawa.ICallbackSet
 import com.isel.pdm.yawa.IWeatherManager
 import com.isel.pdm.yawa.R
 import java.util.*
 
 
 class ForecastListAdapter (activity: Activity,
-                           val data: ArrayList<Map<String, String>>,
-                           val imgLoader: IWeatherManager): BaseAdapter() {
+                           val data: ArrayList<Map<String, Any?>>): BaseAdapter() {
 
     private val inflater: LayoutInflater = activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
 
@@ -48,26 +45,16 @@ class ForecastListAdapter (activity: Activity,
         val date = vi?.findViewById(R.id.forecast_date) as TextView // duration
         val thumb_image = vi?.findViewById(R.id.forecast_row_image) as ImageView // thumb image
 
-        val weather: Map<String, String>
+        val weather: Map<String, Any?>
         weather = data[position]
 
         // Setting all values in listview
-        maxTemP.text = weather[IWeatherManager.MAX_TEMP_KEY]
-        minTemp.text = weather[IWeatherManager.MIN_TEMP_KEY]
-        date.text = weather[IWeatherManager.DATE_KEY]
-        imgLoader.getWeatherIcon(weather[IWeatherManager.WEATHER_ICON_KEY]!!,
-                object: ICallbackSet{
-                    override fun onError(error: VolleyError) {
-                        // TODO: colocar uma imagem de erro
-                        println("################################### On Error")
-                    }
-
-                    override fun onSucceed(response: Any) {
-                        val weather = response as WeatherStateDO
-                        thumb_image.setImageBitmap(weather.weatherIcon)
-                    }
-                }
-        )
+        maxTemP.text = weather[IWeatherManager.MAX_TEMP_KEY] as String
+        minTemp.text = weather[IWeatherManager.MIN_TEMP_KEY] as String
+        date.text = weather[IWeatherManager.DATE_KEY] as String
+        weather[IWeatherManager.WEATHER_ICON_KEY]?.let {
+            thumb_image.setImageBitmap(weather[IWeatherManager.WEATHER_ICON_KEY] as Bitmap)
+        }
 
         return vi
     }

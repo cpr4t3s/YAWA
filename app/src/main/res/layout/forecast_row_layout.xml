@@ -28,9 +28,8 @@
         android:layout_alignTop="@+id/forecast_thumbnail"
         android:layout_toRightOf="@+id/forecast_thumbnail"
         android:text="-"
-        android:textColor="#040404"
-        android:typeface="sans"
-        android:textSize="15dip"
+        android:textColor="#802525"
+        android:textSize="15sp"
         android:textStyle="bold"/>
 
 
@@ -39,8 +38,9 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/forecast_max_temp"
-        android:textColor="#343434"
-        android:textSize="10dip"
+        android:textColor="#304085"
+        android:textSize="15sp"
+        android:textStyle="bold"
         android:layout_marginTop="1dip"
         android:layout_toRightOf="@+id/forecast_thumbnail"
         android:text="-" />
@@ -50,13 +50,12 @@
         android:id="@+id/forecast_date"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
         android:layout_alignTop="@id/forecast_max_temp"
-        android:gravity="right"
+        android:gravity="end"
         android:text="-"
         android:layout_marginRight="5dip"
-        android:textSize="10dip"
-        android:textColor="#10bcc9"
+        android:textSize="12sp"
         android:textStyle="bold"/>
 
 </RelativeLayout>

@@ -60,6 +60,9 @@ class CitiesListFragment : ListFragment() {
         citiesList.let{ activity.application.weatherManager.setWeather(citiesList!![position].weatherState) }
         //
         activity.onBackPressed()
+        // Inform wethermanager that we have changed our city. Useful to inform the mnager that it
+        // needs to make a new foreground request instead of use local cache
+        activity.application.weatherManager.onChangeCity()
     }
 
     /**

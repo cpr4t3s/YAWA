@@ -17,7 +17,7 @@ import com.isel.pdm.yawa.openweather_tools.URLTranslator
 
 import org.json.JSONObject
 
-class WeatherManager constructor(context: Context, val requester: IRequestParser) : IWeatherManager {
+class WeatherManager constructor(context: Context, val requester: IRequestParser) {
 
     private val context: Context
     private var weatherState: WeatherStateDO? = null
@@ -102,7 +102,7 @@ class WeatherManager constructor(context: Context, val requester: IRequestParser
         this.requester.addRequest(jsObjRequest)
     }
 
-    override fun getWeatherIcon(iconID: String, callbackSet : ICallbackSet) {
+    fun getWeatherIcon(iconID: String, callbackSet : ICallbackSet) {
         val imageLoader = this.requester.getImgLoader()
 
         val url = URLTranslator.getWeatherIconURL(this.context, iconID)
@@ -177,21 +177,65 @@ class WeatherManager constructor(context: Context, val requester: IRequestParser
         this.requester.addRequest(jsObjRequest)
     }
 
-    private fun setforegroundWeather(jsonObject: JSONObject) {
+    private fun setForecastWeather(jsonObject: JSONObject) {
         forecastState = OpenWeatherParser.parseForecastCity(jsonObject)
     }
 
+    private fun setForegroundWeatherIcon(bitmap: Bitmap, index: Int) {
+        forecastState?.weatherStateDOList?.get(index)?.weatherIcon = bitmap
+    }
+
+    /**
+     * Get icons bitmap. Only call onSucceed when last == true
+     */
+    private fun getWeatherIconForForecast(iconID: String, callbackSet : ICallbackSet, index: Int, last: Boolean) {
+        val imageLoader = this.requester.getImgLoader()
+
+        val url = URLTranslator.getWeatherIconURL(this.context, iconID)
+        imageLoader.get(
+                url,
+                object : ImageLoader.ImageListener {
+                    override fun onResponse(response: ImageLoader.ImageContainer, isImmediate: Boolean) {
+                        response.bitmap?.let { setForegroundWeatherIcon(response.bitmap, index) }
+
+                        // On the last icon, call the callnack
+                        if(last) {
+                            callbackSet.onSucceed( this@WeatherManager.forecastState!! )
+                            // the update has succeed!
+                            updateForecastInternalStateOnSucceed()
+                        }
+                    }
+
+                    override fun onErrorResponse(error: VolleyError) {
+                        // update internal state
+                        updateInternalState()
+
+                        //TODO: set an error image
+                        //WeatherManager.this.weatherState.setWeatherIcon(R.drawable.err_image);
+                        callbackSet.onError(error)
+                    }
+                })
+    }
+
+    /**
+     * Updates the forecast weather.
+     * To get all the weather icons it calls getWeatherIconForForecast() for each day
+     */
     private fun updateForecastWeather(cityID: String, callbackSet: ICallbackSet) {
         val url = URLTranslator.getForecastCityById(this.context,cityID)
 
         val jsObjRequest = JsonObjectRequest(Request.Method.GET, url, null, Response.Listener<org.json.JSONObject> { response ->
             // update internal state
             updateForecastInternalState()
-            // the update has succeed!
-            updateForecastInternalStateOnSucceed()
 
-            setforegroundWeather(response)
-            callbackSet.onSucceed( this@WeatherManager.forecastState!! )
+            setForecastWeather(response)
+            // Get all the weather icons bitmap for each day in forecast
+            var idx = 0
+            val it = forecastState?.weatherStateDOList!!.iterator()
+            for(weatherDO in it) {
+                getWeatherIconForForecast(weatherDO.weatherIconID, callbackSet, idx, !it.hasNext())
+                idx++
+            }
         }, Response.ErrorListener { error ->
             // update internal state
             updateForecastInternalState()
@@ -250,5 +294,15 @@ class WeatherManager constructor(context: Context, val requester: IRequestParser
      */
     fun getLocalForecastWeather(): ForecastDO {
         return forecastState!!
+    }
+
+    /**
+     * Used to clean forecast cache when a new city is configured.
+     * Cleaning the cache and reset its state forces the update next time getForecastByCityId is called
+     */
+    fun onChangeCity() {
+        forecastState = null
+        forecastUpdated = false
+        forecastElapsedTime = 0
     }
 }

@@ -1,6 +1,5 @@
 package com.isel.pdm.yawa.fragments
 
-import android.app.FragmentTransaction
 import android.app.ListFragment
 import android.content.Context
 import android.os.Bundle
@@ -32,8 +31,7 @@ class ForecastFragment : ListFragment() {
                 val forecastState = response as ForecastDO
 
                 listView.adapter = ForecastListAdapter(activity,
-                        this@ForecastFragment.buildListViewDataSet(forecastState),
-                        activity.application.weatherManager)
+                        this@ForecastFragment.buildListViewDataSet(forecastState))
             }
         }
     }
@@ -43,8 +41,8 @@ class ForecastFragment : ListFragment() {
         return inflater.inflate(R.layout.forecast_fragment_layout, container, false)
     }
 
-    private fun buildListViewDataSet(forecastList: ForecastDO) : ArrayList<Map<String, String>> {
-        val retList = ArrayList<Map<String, String>>()
+    private fun buildListViewDataSet(forecastList: ForecastDO) : ArrayList<Map<String, Any?>> {
+        val retList = ArrayList<Map<String, Any?>>()
         for(forecastDO: WeatherStateDO in forecastList.weatherStateDOList) {
             // Converte Unix seconds to Date
             val date = DateConverter.unixSecondsToDateString(forecastDO.date,
@@ -54,7 +52,7 @@ class ForecastFragment : ListFragment() {
                             Pair(IWeatherManager.DATE_KEY, date),
                             Pair(IWeatherManager.MAX_TEMP_KEY, forecastDO.temp_max.toString()),
                             Pair(IWeatherManager.MIN_TEMP_KEY, forecastDO.temp_min.toString()),
-                            Pair(IWeatherManager.WEATHER_ICON_KEY, forecastDO.weatherIconID)
+                            Pair(IWeatherManager.WEATHER_ICON_KEY, forecastDO.weatherIcon)
                     )
             )
         }
@@ -82,13 +80,7 @@ class ForecastFragment : ListFragment() {
      * Called when the user press an item of ListView
      */
     private fun onListViewItemClicked(adapterView: AdapterView<*>, view: View, position: Int, id: Long) {
-        println("------------ Position")
-        println(position)
-        println(id)
         val weatherDO = activity.application.weatherManager.getLocalForecastWeather().weatherStateDOList[position]
-        println(DateConverter.unixSecondsToDateString(weatherDO.date, TimeZone.getDefault(), SimpleDateFormat("yyyy-MM-dd HH:mm:ss")))
-
-
         val newFragment = WeatherDetailsFragment()
         fragmentManager.beginTransaction().replace(R.id.forecast_data_holder, newFragment)
                 .addToBackStack(null)
