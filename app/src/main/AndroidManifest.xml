@@ -37,6 +37,14 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.isel.pdm.yawa.MainActivity" />
         </activity>
+        <activity android:name=".AboutActivity"
+            android:parentActivityName="com.isel.pdm.yawa.MainActivity">
+
+            <!-- for older version: < API 16 -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.isel.pdm.yawa.MainActivity" />
+        </activity>
     </application>
 
 </manifest>

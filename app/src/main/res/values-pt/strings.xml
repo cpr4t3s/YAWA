@@ -8,9 +8,9 @@
     <string name="weather_humidity">Humidade</string>
     <string name="weather_wind_speed">Velocidade do Vento</string>
     <string name="weather_pressure">Pressão</string>
-    <string name="weather_seaLevel">Nivel do mar</string>
-    <string name="weather_groundLevel">Nivel da terra</string>
-    <string name="weather_windDegree">Angulo do vento</string>
+    <string name="weather_seaLevel">Nível do mar</string>
+    <string name="weather_groundLevel">Nível da terra</string>
+    <string name="weather_windDegree">Ângulo do vento</string>
 
     <string name="settings_setCity">Configurar Cidade</string>
 
@@ -18,4 +18,12 @@
     <string name="settings_about">Sobre</string>
     <string name="settings_forecast">Previsão</string>
     <string name="settings_refresh">Actualizar</string>
+
+    <string name="group">Grupo 11</string>
+    <string name="person1">Autor: Claudio Prates </string>
+    <string name="number1">Número: 40908  </string>
+    <string name="person2">Autor: Daniel Rosa </string>
+    <string name="number2">Número: 40909 </string>
+    <string name="credits">Créditos</string>
+
 </resources>

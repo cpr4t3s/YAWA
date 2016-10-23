@@ -89,8 +89,8 @@ class MainActivity : AppCompatActivity() {
             R.id.settings_forecast -> startActivity(Intent(this, ForecastActivity::class.java))
             // refresh weather
             R.id.settings_refresh -> application.weatherManager.refreshCurrentWeather(callbackSet)
-            //TODO activity com os dados
-            R.id.settings_about -> Toast.makeText(this, "About!!!!!!!!!", Toast.LENGTH_SHORT).show()
+            // Information about the application
+            R.id.settings_about -> startActivity(Intent(this, AboutActivity::class.java))
         }
         return true
     }

@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true"
+        android:orientation="vertical">
+
+        <TextView
+            android:text="Yet Another Weather Application"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/title"
+            android:gravity="center"
+            android:textSize="30sp"
+            android:typeface="normal"
+            android:textAlignment="center" />
+
+        <Space android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            tools:layout_height="40dp" />
+
+        <TextView
+            android:text="@string/group"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/author"
+            android:textAlignment="center"
+            android:textSize="24sp"
+            android:fontFamily="cursive" />
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="20dp" />
+
+        <TextView
+            android:text="@string/person1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/person1" />
+        <TextView
+            android:text="@string/number1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/number1" />
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="20dp" />
+
+        <TextView
+            android:text="@string/person2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/person2" />
+        <TextView
+            android:text="@string/number2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/number2" />
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="50dp" />
+
+        <TextView
+            android:text="@string/credits"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/textView12"
+            android:textAlignment="center"
+            android:textSize="24sp" />
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="20dp" />
+
+        <TextView
+            android:text="OpenWeatherMap Inc.  800 West El Camino Real  Suite 180"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/textView14"
+            android:textAlignment="textStart" />
+
+        <TextView
+            android:text="Mountain View, CA 94040  USA "
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/textView15" />
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="20dp" />
+
+        <Button
+            android:text="https://openweathermap.org/"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/web" />
+
+    </LinearLayout>
+</RelativeLayout>
