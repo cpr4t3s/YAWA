@@ -18,7 +18,7 @@ import com.isel.pdm.yawa.openweather_tools.URLTranslator
 
 import org.json.JSONObject
 
-class WeatherManager constructor(context: Context, val requester: IRequestParser) {
+class WeatherManager constructor(context: Context, val requester: IRequestParser) : IWeatherManager {
 
     private val context: Context
     private var weatherState: WeatherStateDO? = null
@@ -103,7 +103,7 @@ class WeatherManager constructor(context: Context, val requester: IRequestParser
         this.requester.addRequest(jsObjRequest)
     }
 
-    fun getWeatherIcon(iconID: String, callbackSet : ICallbackSet) {
+    override fun getWeatherIcon(iconID: String, callbackSet : ICallbackSet) {
         val imageLoader = this.requester.getImgLoader()
 
         val url = URLTranslator.getWeatherIconURL(this.context, iconID)
@@ -244,5 +244,12 @@ class WeatherManager constructor(context: Context, val requester: IRequestParser
                     }
             )
         }
+    }
+
+    /**
+     *
+     */
+    fun getLocalForecastWeather(): ForecastDO {
+        return forecastState!!
     }
 }
