@@ -10,6 +10,7 @@ import com.android.volley.Response
 import com.android.volley.VolleyError
 import com.android.volley.toolbox.ImageLoader
 import com.android.volley.toolbox.JsonObjectRequest
+import com.isel.pdm.yawa.DataContainers.ForecastDO
 import com.isel.pdm.yawa.DataContainers.WeatherStateDO
 import com.isel.pdm.yawa.openweather_tools.OpenWeatherParser
 import com.isel.pdm.yawa.openweather_tools.OpenWeatherRequester
@@ -21,10 +22,15 @@ class WeatherManager constructor(context: Context, val requester: IRequestParser
 
     private val context: Context
     private var weatherState: WeatherStateDO? = null
-    // true when when the app has completed at least one update
+    private var forecastState: ForecastDO? = null
+    // true when when the app has completed at least one update of current weather
     private var updated = false
-    // Counter to know when can update weather's state
+    // Counter to know when can update current weather's state
     private var elapsedTime: Long = 0
+    // true when when the app has completed at least one update of forecast weather
+    private var forecastUpdated = false
+    // Counter to know when can update forecast weather's state
+    private var forecastElapsedTime: Long = 0
 
     init {
         this.context = context.applicationContext
@@ -51,6 +57,21 @@ class WeatherManager constructor(context: Context, val requester: IRequestParser
      */
     private fun updateInternalStateOnSucceed() {
         this.updated = true
+    }
+
+    /**
+     * Update manager's internal state for forecast after every (onSucceed and onError) update.
+     * It's called even after onError to avoid continuous tries after UPDATE_INTERVAL without updates
+     */
+    private fun updateForecastInternalState() {
+        this.forecastElapsedTime = SystemClock.elapsedRealtime()
+    }
+
+    /**
+     * Only called when the forecast update has succeed
+     */
+    private fun updateForecastInternalStateOnSucceed() {
+        this.forecastUpdated = true
     }
 
     private fun setWeatherState(jsonObject: JSONObject) {
@@ -157,14 +178,24 @@ class WeatherManager constructor(context: Context, val requester: IRequestParser
         this.requester.addRequest(jsObjRequest)
     }
 
-    fun getForecastByCityId(cityID : String, callbackSet : ICallbackSet){
+    private fun setforegroundWeather(jsonObject: JSONObject) {
+        forecastState = OpenWeatherParser.parseForecastCity(jsonObject)
+    }
+
+    private fun updateForecastWeather(cityID: String, callbackSet: ICallbackSet) {
         val url = URLTranslator.getForecastCityById(this.context,cityID)
 
         val jsObjRequest = JsonObjectRequest(Request.Method.GET, url, null, Response.Listener<org.json.JSONObject> { response ->
-            callbackSet.onSucceed( OpenWeatherParser.parseForecastCity(response) )
+            // update internal state
+            updateForecastInternalState()
+            // the update has succeed!
+            updateForecastInternalStateOnSucceed()
+
+            setforegroundWeather(response)
+            callbackSet.onSucceed( this@WeatherManager.forecastState!! )
         }, Response.ErrorListener { error ->
             // update internal state
-            updateInternalState()
+            updateForecastInternalState()
             callbackSet.onError(error)
         })
 
@@ -173,6 +204,26 @@ class WeatherManager constructor(context: Context, val requester: IRequestParser
         //
         this.requester.addRequest(jsObjRequest)
     }
+
+    fun getForecastByCityId(cityID : String, callbackSet : ICallbackSet){
+        if (SystemClock.elapsedRealtime() - this.forecastElapsedTime < UPDATE_INTERVAL) {
+            if (this.forecastUpdated) {
+                callbackSet.onSucceed(this.forecastState!!)
+            }
+
+            return
+        }
+
+        updateForecastWeather(cityID, callbackSet)
+    }
+
+    /**
+     * Force the update
+     */
+    fun refreshForecastWeather(cityID : String, callbackSet : ICallbackSet) {
+        updateForecastWeather(cityID, callbackSet)
+    }
+
     /**
      * Set the weather to a given arg.
      * Useful when the user select a new city - the search by city already have the weather

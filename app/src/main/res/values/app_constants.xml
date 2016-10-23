@@ -3,5 +3,5 @@
     <string name="settings_filename">app_setings</string>
     <string name="settings_location_str">location</string>
     <string name="settings_units_str">units</string>
-    <string name="settings_cityId">units</string>
+    <string name="settings_city_id_str">cityID</string>
 </resources>

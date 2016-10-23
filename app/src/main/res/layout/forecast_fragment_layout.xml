@@ -3,26 +3,17 @@
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <ImageButton
-        android:layout_width="32dp"
-        android:layout_height="32dp"
-        android:id="@+id/btnSearchCity"
-        android:background="@drawable/search_icon"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentEnd="true" />
+    <android.support.v4.widget.SwipeRefreshLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/forecast_weather_swiperefresh"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
-    <ProgressBar
-        android:id="@+id/spinner"
-        style="?android:attr/progressBarStyleLarge"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:progressDrawable="@drawable/spinner"
-        android:layout_gravity="center_horizontal" />
-
-    <ListView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:id="@android:id/list" />
+        <ListView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:id="@android:id/list" />
+    </android.support.v4.widget.SwipeRefreshLayout>
 
 </LinearLayout>

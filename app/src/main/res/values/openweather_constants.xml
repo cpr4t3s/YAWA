@@ -6,6 +6,7 @@
     <string name="url_request">http://api.openweathermap.org/data/{0}/weather?q={1}&amp;units=metric&amp;appid={2}&amp;lang={3}&amp;units={4}</string>
     <string name="weather_state_icon_ulr">http://openweathermap.org/img/w/{0}.png</string>
     <string name="default_location">Lisbon,pt</string>
+    <!-- Lisbon, PT ID -->
     <string name="default_cityID">2267057</string>
     <string name="default_units">metric</string>
     <string name="get_search_cities_url">http://api.openweathermap.org/data/{0}/find?q={1}&amp;type=like&amp;mode=json&amp;appid={2}&amp;lang={3}&amp;units={4}</string>

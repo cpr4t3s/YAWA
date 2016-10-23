@@ -27,9 +27,15 @@
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.isel.pdm.yawa.MainActivity" />
-
         </activity>
-        <activity android:name=".ForecastActivity">
+
+        <activity android:name=".ForecastActivity"
+            android:parentActivityName="com.isel.pdm.yawa.MainActivity">
+
+            <!-- for older version: < API 16 -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.isel.pdm.yawa.MainActivity" />
         </activity>
     </application>
 

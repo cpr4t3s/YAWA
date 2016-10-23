@@ -68,13 +68,13 @@ class CitiesListFragment : ListFragment() {
     private fun configureCity(cityName: String, country: String, cityId: String) {
         val settingsFileName = resources.getString(R.string.settings_filename)
         val settingsLocationStr = resources.getString(R.string.settings_location_str)
-        val settingscityId = resources.getString(R.string.settings_cityId)
+        val settingsCityId = resources.getString(R.string.settings_city_id_str)
         val settings = activity.getSharedPreferences(settingsFileName, Context.MODE_PRIVATE)
         val editor = settings.edit()
 
         val str: String = cityName + "," + country
         editor.putString(settingsLocationStr, str)
-        editor.putString(settingscityId, cityId)
+        editor.putString(settingsCityId, cityId)
         editor.commit()
     }
 

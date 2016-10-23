@@ -1,15 +1,14 @@
 package com.isel.pdm.yawa.fragments
 
-import android.app.Application
 import android.app.ListFragment
 import android.content.Context
 import android.os.Bundle
+import android.support.v4.widget.SwipeRefreshLayout
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ListView
-import android.widget.ProgressBar
 import android.widget.SimpleAdapter
+import android.widget.Toast
 import com.android.volley.VolleyError
 import com.isel.pdm.yawa.*
 import com.isel.pdm.yawa.DataContainers.ForecastDO
@@ -17,9 +16,25 @@ import com.isel.pdm.yawa.DataContainers.WeatherStateDO
 import java.util.*
 
 class ForecastFragment : ListFragment() {
+    private val swR by lazy { activity.findViewById(R.id.forecast_weather_swiperefresh) as SwipeRefreshLayout }
+    private val callbackSet : ICallbackSet by lazy {
+        object : ICallbackSet {
+            override fun onError(error: VolleyError) {
+                swR.isRefreshing = false
+                Toast.makeText(activity, R.string.error1004, Toast.LENGTH_SHORT).show()
+            }
+            override fun onSucceed(response: Any) {
+                swR.isRefreshing = false
+                val weatherState = response as ForecastDO
 
-    private val spinner by lazy {activity.findViewById(R.id.spinner) as ProgressBar }
-
+                listView.adapter = SimpleAdapter(activity,
+                        this@ForecastFragment.buildListViewDataSet(weatherState),
+                        android.R.layout.simple_list_item_2,
+                        arrayOf("city", "temp","max","min"),
+                        intArrayOf(android.R.id.text1, android.R.id.text2,android.R.id.text2,android.R.id.text2))
+            }
+        }
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
@@ -43,29 +58,13 @@ class ForecastFragment : ListFragment() {
     override fun onActivityCreated (savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         val settings = activity.getSharedPreferences(activity.application.settingsFileName, Context.MODE_PRIVATE)
-        val cityId = settings.getString(activity.application.settingsCityId, activity.application.settingsCityId)
-                // hide spinner
-        spinner.visibility = View.GONE
-        activity.application.weatherManager.getForecastByCityId(cityId,
-                object : ICallbackSet {
-                    override fun onError(error: VolleyError) {
-                        print(error.cause)
-                    }
-                    override fun onSucceed(response: Any) {
-                        val weatherState = response as ForecastDO
-                        spinner.visibility = View.GONE
+        val cityId = settings.getString(activity.application.settingsCityIDStr, activity.application.defaultCityId)
 
-                        listView.adapter = SimpleAdapter(activity,
-                                this@ForecastFragment.buildListViewDataSet(weatherState),
-                                android.R.layout.simple_list_item_2,
-                                arrayOf("city", "temp","max","min"),
-                                intArrayOf(android.R.id.text1, android.R.id.text2,android.R.id.text2,android.R.id.text2))
-                    }
-                }
-        )
+        activity.application.weatherManager.getForecastByCityId(cityId, callbackSet)
 
-
+        swR.setOnRefreshListener({
+                    activity.application.weatherManager.refreshForecastWeather(cityId, callbackSet)
+                })
     }
-
 
 }

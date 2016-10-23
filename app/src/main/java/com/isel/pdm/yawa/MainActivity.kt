@@ -10,7 +10,6 @@ import android.widget.TextView
 import android.widget.Toast
 
 import com.android.volley.VolleyError
-import com.isel.pdm.yawa.DataContainers.ForecastDO
 import com.isel.pdm.yawa.DataContainers.WeatherStateDO
 import com.isel.pdm.yawa.fragments.WeatherDetailsFragment
 
@@ -51,8 +50,6 @@ class MainActivity : AppCompatActivity() {
 
         swR.setOnRefreshListener(
                 { application.weatherManager.refreshCurrentWeather(callbackSet) })
-
-
     }
 
     override fun onStop() {

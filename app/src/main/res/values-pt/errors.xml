@@ -3,4 +3,5 @@
     <string name="error1001">Ocorreu um erro na leitra do tempo!</string>
     <string name="error1002">Não foi possível realizar a pesquisa!</string>
     <string name="error1003">Não foi possível terminar a operação!</string>
+    <string name="error1004">Previsão do tempo indisponível!</string>
 </resources>
