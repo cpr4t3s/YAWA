@@ -12,6 +12,8 @@ class YAWA : Application() {
     // key for locations on settings file
     val settingsLocationStr: String by lazy { resources.getString(R.string.settings_location_str) }
 
+    val settingsCityId: String by lazy { resources.getString(R.string.default_cityID) }
+
 
     override fun onCreate() {
         super.onCreate()
@@ -29,3 +31,6 @@ val Application.defaultLocation: String
 
 val Application.settingsLocationStr: String
     get() = (this as YAWA).settingsLocationStr
+
+val Application.settingsCityId: String
+    get() = (this as YAWA).settingsCityId

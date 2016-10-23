@@ -2,6 +2,7 @@ package com.isel.pdm.yawa.openweather_tools
 
 import android.graphics.Bitmap
 import com.isel.pdm.yawa.DataContainers.CityDO
+import com.isel.pdm.yawa.DataContainers.ForecastDO
 
 import com.isel.pdm.yawa.DataContainers.WeatherStateDO
 import com.isel.pdm.yawa.iterator
@@ -27,10 +28,28 @@ object OpenWeatherParser {
                 weather.getDouble("grnd_level"),
                 weather.getDouble("humidity"),
                 wind.getDouble("speed"),
-                wind.getDouble("deg")
+                wind.getDouble("deg"),
+                0
         )
     }
-
+    private fun buildWeatherStateDOForForecast(root: JSONObject,temp: JSONObject, weather: JSONObject) : WeatherStateDO {
+        return WeatherStateDO(
+                weather.getString("main"),
+                weather.getString("description"),
+                weather.getString("icon"),
+                null,
+                temp.getDouble("day"),
+                temp.getDouble("min"),
+                temp.getDouble("max"),
+                root.getDouble("pressure"),
+                0.0,
+                0.0,
+                root.getDouble("humidity"),
+                root.getDouble("speed"),
+                root.getDouble("deg"),
+                root.getLong("dt")
+        )
+    }
     fun parseWeatherState(jsonObject: JSONObject): WeatherStateDO {
         // Build weather DO
         val weather: JSONObject = jsonObject.getJSONObject("main")
@@ -74,4 +93,32 @@ object OpenWeatherParser {
 
         return citiesList
     }
+
+    private fun parseWeatherStateList(jsonArray: JSONArray): List<WeatherStateDO>{
+       val toReturn : ArrayList<WeatherStateDO> = ArrayList<WeatherStateDO>()
+
+        for (t in jsonArray){
+            // Build weather DO
+            val temp: JSONObject = t.getJSONObject("temp")
+            val weather: JSONObject = t.getJSONArray("weather").get(0) as JSONObject
+            val wState: WeatherStateDO = buildWeatherStateDOForForecast(t,temp, weather)
+            toReturn.add(wState)
+        }
+        return toReturn
+    }
+
+    fun parseForecastCity(jsonObject: JSONObject) : ForecastDO{
+
+        val temp = jsonObject.get("list") as JSONArray
+        val  weatherList = parseWeatherStateList(temp) as List<WeatherStateDO>
+        // Build City DO
+        val city: JSONObject = jsonObject.getJSONObject("city")
+        val forecastDO: ForecastDO = ForecastDO(
+                city.getString("name"),
+                city.getInt("id"),
+                city.getString("country"),
+                weatherList)
+        return forecastDO
+    }
+
 }

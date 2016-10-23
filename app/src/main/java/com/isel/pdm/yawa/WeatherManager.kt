@@ -35,6 +35,7 @@ class WeatherManager constructor(context: Context, val requester: IRequestParser
         private val UPDATE_INTERVAL = 3600 * MILLISECONDS // one hour
         private val WEATHER_REQUEST_TAG = "weatherReq"
         private val WEATHER_SEARCH_CITY_TAG = "cityListReq"
+        private val FORECAST_CITY_BY_ID_TAG = "forecastReq"
     }
 
     /**
@@ -156,6 +157,22 @@ class WeatherManager constructor(context: Context, val requester: IRequestParser
         this.requester.addRequest(jsObjRequest)
     }
 
+    fun getForecastByCityId(cityID : String, callbackSet : ICallbackSet){
+        val url = URLTranslator.getForecastCityById(this.context,cityID)
+
+        val jsObjRequest = JsonObjectRequest(Request.Method.GET, url, null, Response.Listener<org.json.JSONObject> { response ->
+            callbackSet.onSucceed( OpenWeatherParser.parseForecastCity(response) )
+        }, Response.ErrorListener { error ->
+            // update internal state
+            updateInternalState()
+            callbackSet.onError(error)
+        })
+
+        // add a TAG to easily cancel the request if necessary
+        jsObjRequest.tag = FORECAST_CITY_BY_ID_TAG
+        //
+        this.requester.addRequest(jsObjRequest)
+    }
     /**
      * Set the weather to a given arg.
      * Useful when the user select a new city - the search by city already have the weather

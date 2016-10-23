@@ -17,6 +17,7 @@ class CitiesActivity : AppCompatActivity() {
         searchButton.setOnClickListener {
             listFragment.doSearch()
         }
+
     }
 
     override fun onSaveInstanceState(outState : Bundle) {

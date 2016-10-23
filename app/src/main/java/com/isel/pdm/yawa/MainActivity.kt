@@ -10,6 +10,7 @@ import android.widget.TextView
 import android.widget.Toast
 
 import com.android.volley.VolleyError
+import com.isel.pdm.yawa.DataContainers.ForecastDO
 import com.isel.pdm.yawa.DataContainers.WeatherStateDO
 import com.isel.pdm.yawa.fragments.WeatherDetailsFragment
 

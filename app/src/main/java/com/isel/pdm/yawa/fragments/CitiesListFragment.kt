@@ -53,8 +53,9 @@ class CitiesListFragment : ListFragment() {
         val country: String = (adapterView.getItemAtPosition(position)
                 as Map<*, *>)["country"].toString()
 
+        val cityId: String = citiesList!![position].cityID.toString()
         // set the new city on Shared Preferences
-        configureCity(cityName, country)
+        configureCity(cityName, country, cityId)
         // set the weather returned by the search
         citiesList.let{ activity.application.weatherManager.setWeather(citiesList!![position].weatherState) }
         //
@@ -64,14 +65,16 @@ class CitiesListFragment : ListFragment() {
     /**
      * Configure the new city with Shared Preferences
      */
-    private fun configureCity(cityName: String, country: String) {
+    private fun configureCity(cityName: String, country: String, cityId: String) {
         val settingsFileName = resources.getString(R.string.settings_filename)
         val settingsLocationStr = resources.getString(R.string.settings_location_str)
+        val settingscityId = resources.getString(R.string.settings_cityId)
         val settings = activity.getSharedPreferences(settingsFileName, Context.MODE_PRIVATE)
         val editor = settings.edit()
 
         val str: String = cityName + "," + country
         editor.putString(settingsLocationStr, str)
+        editor.putString(settingscityId, cityId)
         editor.commit()
     }
 

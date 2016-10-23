@@ -15,7 +15,7 @@ object URLTranslator {
     private val API_KEY_TEMPLATE_ID = R.string.api_key
     private val SEARCH_BY_CITY_NAME_URL_TEMPLATE_ID = R.string.get_search_cities_url
     private val FORCAST_BY_CITY_ID_URL_TEMPLATE = R.string.get_forcast_city_url
-    private val NUMBER_OF_DAYS_TO_FORCAST = 5
+    private val NUMBER_OF_DAYS_TO_FORCAST =  R.string.get_forcast_days
 
     fun getWeatherIconURL(context: Context, iconID: String): String {
         return MessageFormat.format(
@@ -66,7 +66,7 @@ object URLTranslator {
         return MessageFormat.format(urlTemplate, *arrayOf(apiVersion, searchCity, apiKey, lang, units))
     }
 
-    fun getForcastForCityById(context: Context, searchCity: String): String {
+    fun getForecastCityById(context: Context, searchCityId: String): String {
 
         val urlTemplate = context.resources.getString(FORCAST_BY_CITY_ID_URL_TEMPLATE)
         val forcastDays = context.resources.getString(NUMBER_OF_DAYS_TO_FORCAST)
@@ -83,7 +83,7 @@ object URLTranslator {
         val defaultUnits = context.resources.getString(R.string.default_units)
         val units = settings.getString(settingsUnitsStr, defaultUnits)
 
-        return MessageFormat.format(urlTemplate, *arrayOf(apiVersion, searchCity,forcastDays, apiKey, lang, units))
+        return MessageFormat.format(urlTemplate, *arrayOf(apiVersion, searchCityId,forcastDays, apiKey, lang, units))
     }
 }
 

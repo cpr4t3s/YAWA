@@ -15,6 +15,7 @@ class WeatherStateDO (
         val groundLevel: Double,
         val humidity: Double,
         val windSpeed: Double,
-        val windDegree: Double
+        val windDegree: Double,
+        val date: Long
 )
 { }
