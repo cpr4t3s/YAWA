@@ -1,6 +1,5 @@
 package com.isel.pdm.yawa
 
-import android.app.FragmentTransaction
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import com.isel.pdm.yawa.fragments.ForecastFragment
@@ -16,6 +15,13 @@ class ForecastActivity : AppCompatActivity(){
         fragmentManager.beginTransaction()
                 .add(R.id.forecast_data_holder, forecastFragment)
                 .commit()
+    }
+
+    override fun onStop() {
+        super.onStop()
+
+        // on activity's state changes we need to cancel possible requests
+        application.weatherManager.cancelAllRequests()
     }
 
     override fun onSaveInstanceState(outState : Bundle) {

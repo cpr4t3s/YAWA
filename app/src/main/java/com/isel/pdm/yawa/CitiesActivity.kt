@@ -20,6 +20,13 @@ class CitiesActivity : AppCompatActivity() {
 
     }
 
+    override fun onStop() {
+        super.onStop()
+
+        // on activity's state changes we need to cancel possible requests
+        application.weatherManager.cancelAllRequests()
+    }
+
     override fun onSaveInstanceState(outState : Bundle) {
         outState.putString(CitiesListFragment.SEARCH_TEXT_KEY, listFragment.txtSearchStr.text.toString())
     }

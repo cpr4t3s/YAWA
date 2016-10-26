@@ -4,6 +4,7 @@ package com.isel.pdm.yawa
 import android.content.Context
 import android.graphics.Bitmap
 import android.os.SystemClock
+import android.util.Log
 
 import com.android.volley.Request
 import com.android.volley.Response
@@ -90,6 +91,7 @@ class WeatherManager constructor(context: Context, val requester: IRequestParser
             // Get the icon
             this@WeatherManager.getWeatherIcon(this@WeatherManager.weatherState!!.weatherIconID!!, callbackSet)
         }, Response.ErrorListener { error ->
+            Log.e(Log.ERROR.toString(), "Error on 'updateCurrentWeather()'.\n" + error.message)
             // update internal state
             updateInternalState()
 
@@ -120,6 +122,7 @@ class WeatherManager constructor(context: Context, val requester: IRequestParser
                     }
 
                     override fun onErrorResponse(error: VolleyError) {
+                        Log.e(Log.ERROR.toString(), "Error on 'getWeatherIcon()'.\n" + error.message)
                         // update internal state
                         updateInternalState()
 
@@ -188,7 +191,7 @@ class WeatherManager constructor(context: Context, val requester: IRequestParser
     /**
      * Get icons bitmap. Only call onSucceed when last == true
      */
-    private fun getWeatherIconForForecast(iconID: String, callbackSet : ICallbackSet, index: Int, last: Boolean) {
+    private fun getWeatherIconForForecast(iconID: String, callbackSet : ICallbackSet, index: Int) {
         val imageLoader = this.requester.getImgLoader()
 
         val url = URLTranslator.getWeatherIconURL(this.context, iconID)
@@ -197,16 +200,13 @@ class WeatherManager constructor(context: Context, val requester: IRequestParser
                 object : ImageLoader.ImageListener {
                     override fun onResponse(response: ImageLoader.ImageContainer, isImmediate: Boolean) {
                         response.bitmap?.let { setForegroundWeatherIcon(response.bitmap, index) }
-
-                        // On the last icon, call the callnack
-                        if(last) {
-                            callbackSet.onSucceed( this@WeatherManager.forecastState!! )
-                            // the update has succeed!
-                            updateForecastInternalStateOnSucceed()
-                        }
+                        callbackSet.onSucceed( this@WeatherManager.forecastState!! )
+                        // the update has succeed!
+                        updateForecastInternalStateOnSucceed()
                     }
 
                     override fun onErrorResponse(error: VolleyError) {
+                        Log.e(Log.ERROR.toString(), "Error on 'getWeatherIconForForecast()'.\n" + error.message)
                         // update internal state
                         updateInternalState()
 
@@ -231,12 +231,12 @@ class WeatherManager constructor(context: Context, val requester: IRequestParser
             setForecastWeather(response)
             // Get all the weather icons bitmap for each day in forecast
             var idx = 0
-            val it = forecastState?.weatherStateDOList!!.iterator()
-            for(weatherDO in it) {
-                getWeatherIconForForecast(weatherDO.weatherIconID, callbackSet, idx, !it.hasNext())
+            for(weatherDO in forecastState?.weatherStateDOList!!) {
+                getWeatherIconForForecast(weatherDO.weatherIconID, callbackSet, idx)
                 idx++
             }
         }, Response.ErrorListener { error ->
+            Log.e(Log.ERROR.toString(), "Error on 'updateForecastWeather()'.\n" + error.message)
             // update internal state
             updateForecastInternalState()
             callbackSet.onError(error)
@@ -256,7 +256,6 @@ class WeatherManager constructor(context: Context, val requester: IRequestParser
 
             return
         }
-
         updateForecastWeather(cityID, callbackSet)
     }
 
@@ -284,8 +283,7 @@ class WeatherManager constructor(context: Context, val requester: IRequestParser
 
                         override fun onSucceed(response: Any) {
                         }
-                    }
-            )
+                    })
         }
     }
 
