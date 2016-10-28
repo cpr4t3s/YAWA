@@ -16,11 +16,19 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+        <ScrollView
+            android:id="@+id/scrollView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center_horizontal"
+            android:fillViewport="true" >
 
         <fragment android:name="com.isel.pdm.yawa.fragments.WeatherDetailsFragment"
             android:id="@+id/weather_detail"
             android:layout_weight="1"
             android:layout_width="match_parent"
-            android:layout_height="0dp" />
+            android:layout_height="0dp"
+            tools:layout="@layout/weather_detail_fragment_layout" />
+        </ScrollView>
     </android.support.v4.widget.SwipeRefreshLayout>
 </RelativeLayout>

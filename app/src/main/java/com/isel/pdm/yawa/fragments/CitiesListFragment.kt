@@ -12,12 +12,14 @@ import com.isel.pdm.yawa.DataContainers.CityDO
 import com.isel.pdm.yawa.ICallbackSet
 import com.isel.pdm.yawa.R
 import com.isel.pdm.yawa.weatherManager
+import java.net.URL
+import java.net.URLEncoder
 import java.util.*
 
 
 class CitiesListFragment : ListFragment() {
     companion object {
-        public val SEARCH_TEXT_KEY : String = "searchTextKey"
+        val SEARCH_TEXT_KEY : String = "searchTextKey"
     }
 
     // List of CityDOs returned by the search. Used to pass the weather to weatherManager
@@ -31,6 +33,7 @@ class CitiesListFragment : ListFragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.cities_list_fragment, container, false)
+
     }
 
     override fun onActivityCreated (savedInstanceState: Bundle?) {
@@ -90,7 +93,7 @@ class CitiesListFragment : ListFragment() {
         // flush listView
         listView.adapter = null
 
-        activity.application.weatherManager.searchCityByName(txtSearchStr.text.toString(),
+        activity.application.weatherManager.searchCityByName(URLEncoder.encode(txtSearchStr.text.trim().toString(),"UTF-8"),
                 object : ICallbackSet {
                     override fun onError(error: VolleyError) {
                         Toast.makeText(activity, R.string.error1002, Toast.LENGTH_LONG).show()
@@ -128,7 +131,6 @@ class CitiesListFragment : ListFragment() {
                     )
             )
         }
-
         return retList
     }
 }

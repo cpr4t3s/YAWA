@@ -20,9 +20,13 @@
         android:text="@string/weather_main"
         android:id="@+id/textView" />
 
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="10dp" />
+
     <LinearLayout
         android:orientation="horizontal"
-        android:layout_width="match_parent"
+        android:layout_width="383dp"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal">
 
@@ -37,9 +41,10 @@
             android:layout_height="match_parent" />
 
         <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/imageViewWeatherState" />
+            android:id="@+id/imageViewWeatherState"
+            android:layout_width="50dp"
+            android:layout_height="50dp" />
+
     </LinearLayout>
 
     <Space
@@ -47,7 +52,7 @@
         android:layout_height="20dp" />
 
     <TextView
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/weather_description"
         android:id="@+id/textView2" />
