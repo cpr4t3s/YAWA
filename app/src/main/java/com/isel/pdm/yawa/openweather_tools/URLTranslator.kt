@@ -3,13 +3,13 @@ package com.isel.pdm.yawa.openweather_tools
 import android.content.Context
 
 import com.isel.pdm.yawa.R
+import java.net.URLEncoder
 
 import java.text.MessageFormat
 import java.util.Locale
 
 object URLTranslator {
     private val WEATHER_ICON_URL_TEMPLATE_ID = R.string.weather_state_icon_ulr
-    //
     private val CURRENT_WEATHER_URL_TEMPLATE_ID = R.string.url_request
     private val API_VERSION_TEMPLATE_ID = R.string.api_version
     private val API_KEY_TEMPLATE_ID = R.string.api_key
@@ -37,7 +37,7 @@ object URLTranslator {
         val defaultLocation = context.resources.getString(R.string.default_location)
         val settingsLocationStr = context.resources.getString(R.string.settings_location_str)
         val settings = context.getSharedPreferences(settingsFileName, Context.MODE_PRIVATE)
-        val location = settings.getString(settingsLocationStr, defaultLocation)
+        val location = URLEncoder.encode(settings.getString(settingsLocationStr, defaultLocation),"UTF-8")
 
         // set units
         val settingsUnitsStr = context.resources.getString(R.string.settings_units_str)

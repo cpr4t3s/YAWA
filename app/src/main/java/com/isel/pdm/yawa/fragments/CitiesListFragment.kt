@@ -12,7 +12,6 @@ import com.isel.pdm.yawa.DataContainers.CityDO
 import com.isel.pdm.yawa.ICallbackSet
 import com.isel.pdm.yawa.R
 import com.isel.pdm.yawa.weatherManager
-import java.net.URL
 import java.net.URLEncoder
 import java.util.*
 
@@ -78,7 +77,7 @@ class CitiesListFragment : ListFragment() {
         val settings = activity.getSharedPreferences(settingsFileName, Context.MODE_PRIVATE)
         val editor = settings.edit()
 
-        val str: String = cityName + "," + country
+        val str: String =cityName + "," + country
         editor.putString(settingsLocationStr, str)
         editor.putString(settingsCityId, cityId)
         editor.commit()
@@ -92,7 +91,6 @@ class CitiesListFragment : ListFragment() {
         searching = true
         // flush listView
         listView.adapter = null
-
         activity.application.weatherManager.searchCityByName(URLEncoder.encode(txtSearchStr.text.trim().toString(),"UTF-8"),
                 object : ICallbackSet {
                     override fun onError(error: VolleyError) {
