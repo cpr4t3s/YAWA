@@ -1,5 +1,6 @@
 package com.isel.pdm.yawa
 
+import android.app.Fragment
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import com.isel.pdm.yawa.fragments.ForecastFragment
@@ -11,10 +12,13 @@ class ForecastActivity : AppCompatActivity(){
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_forecast)
 
-        val forecastFragment = ForecastFragment()
-        fragmentManager.beginTransaction()
-                .add(R.id.forecast_data_holder, forecastFragment)
-                .commit()
+        // We only add fragment on the first time activity is created
+        if(savedInstanceState == null) {
+            val forecastFragment = ForecastFragment()
+            fragmentManager.beginTransaction()
+                    .add(R.id.forecast_data_holder, forecastFragment)
+                    .commit()
+        }
     }
 
     override fun onStop() {
@@ -25,7 +29,7 @@ class ForecastActivity : AppCompatActivity(){
     }
 
     override fun onSaveInstanceState(outState : Bundle) {
-       // outState.putString(CitiesListFragment.SEARCH_TEXT_KEY, listFragment.txtSearchStr.text.toString())
+        super.onSaveInstanceState(outState)
     }
 
     override fun onRestoreInstanceState(restoredState : Bundle) {

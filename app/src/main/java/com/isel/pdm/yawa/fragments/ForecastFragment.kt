@@ -38,6 +38,12 @@ class ForecastFragment : ListFragment() {
         }
     }
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        // retain the fragment on screen orientation changes
+        retainInstance = true
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.forecast_fragment_layout, container, false)
@@ -48,7 +54,7 @@ class ForecastFragment : ListFragment() {
         for(forecastDO: WeatherStateDO in forecastList.weatherStateDOList) {
             // Convert Unix seconds to Date
             val date = DateConverter.unixSecondsToDateString(forecastDO.date,
-                     TimeZone.getDefault(), SimpleDateFormat("yyyy-MM-dd HH:mm:ss"))
+                     TimeZone.getDefault(), SimpleDateFormat("yyyy-MM-dd, E"))
             retList.add(
                     mapOf(
                             Pair(IWeatherManager.DATE_KEY, date),
