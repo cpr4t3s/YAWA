@@ -12,7 +12,7 @@ import com.isel.pdm.yawa.DataContainers.CityDO
 import com.isel.pdm.yawa.ICallbackSet
 import com.isel.pdm.yawa.R
 import com.isel.pdm.yawa.weatherManager
-import java.net.URL
+import java.io.Serializable
 import java.net.URLEncoder
 import java.util.*
 
@@ -46,6 +46,12 @@ class CitiesListFragment : ListFragment() {
             onListViewItemClicked(adapterView, view, position, id)
         }
     }
+
+//    override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
+//        if(savedInstanceState != null && citiesList != null) {
+//            savedInstanceState.putSerializable("lista", citiesList as Serializable)
+//        }
+//    }
 
     /**
      * Called when the user press an item of ListView
@@ -133,4 +139,13 @@ class CitiesListFragment : ListFragment() {
         }
         return retList
     }
+
+//    override fun onViewStateRestored(savedInstanceState: Bundle?) {
+//        super.onViewStateRestored(savedInstanceState)
+//
+//        savedInstanceState?.let {
+//            citiesList = savedInstanceState.getSerializable("lista") as List<CityDO>?
+//        }
+//    }
+
 }

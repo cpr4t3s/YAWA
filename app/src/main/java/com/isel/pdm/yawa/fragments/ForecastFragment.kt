@@ -8,6 +8,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
+import android.widget.BaseAdapter
 import android.widget.Toast
 import com.android.volley.VolleyError
 import com.isel.pdm.yawa.*
@@ -32,8 +33,24 @@ class ForecastFragment : ListFragment() {
                 swR?.isRefreshing = false
                 val forecastState = response as ForecastDO
 
-                listView.adapter = ForecastListAdapter(activity,
-                        this@ForecastFragment.buildListViewDataSet(forecastState))
+                if(listView.adapter == null) {
+                    listView.adapter = ForecastListAdapter(activity,
+                            this@ForecastFragment.buildListViewDataSet(forecastState))
+                }
+                else {
+                    // If we already have an adpater, just refresh the views in UI Thread
+                    (listView.adapter as ForecastListAdapter).updateData(
+                            buildListViewDataSet(activity.application.weatherManager.getLocalForecastWeather()))
+                    //TODO: como runnable não é executado...
+//                    val run = Runnable(){
+//                        fun run() {
+                            (listView.adapter as ForecastListAdapter).notifyDataSetChanged()
+                            listView.invalidateViews()
+                            listView.refreshDrawableState()
+//                        }
+//                    }
+//                    activity.runOnUiThread(run)
+                }
             }
         }
     }

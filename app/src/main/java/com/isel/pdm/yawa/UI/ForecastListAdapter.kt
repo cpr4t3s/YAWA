@@ -15,9 +15,14 @@ import java.util.*
 
 
 class ForecastListAdapter (activity: Activity,
-                           val data: ArrayList<Map<String, Any?>>): BaseAdapter() {
+                           var data: ArrayList<Map<String, Any?>>): BaseAdapter() {
 
     private val inflater: LayoutInflater = activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+
+    // Update the adapter data
+    fun updateData(data: ArrayList<Map<String, Any?>>) {
+        this.data = data
+    }
 
     override fun getCount(): Int {
         return data.size
