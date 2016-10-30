@@ -28,10 +28,12 @@ class CitiesActivity : AppCompatActivity() {
     }
 
     override fun onSaveInstanceState(outState : Bundle) {
+        super.onSaveInstanceState(outState)
         outState.putString(CitiesListFragment.SEARCH_TEXT_KEY, listFragment.txtSearchStr.text.toString())
     }
 
     override fun onRestoreInstanceState(restoredState : Bundle) {
+        super.onRestoreInstanceState(restoredState)
         listFragment.txtSearchStr.setText(restoredState.getString(CitiesListFragment.SEARCH_TEXT_KEY))
     }
 

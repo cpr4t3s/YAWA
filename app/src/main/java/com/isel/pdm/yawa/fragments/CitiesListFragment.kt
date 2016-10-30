@@ -47,11 +47,27 @@ class CitiesListFragment : ListFragment() {
         }
     }
 
-//    override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
-//        if(savedInstanceState != null && citiesList != null) {
-//            savedInstanceState.putSerializable("lista", citiesList as Serializable)
-//        }
-//    }
+    override fun onSaveInstanceState(outState: Bundle?) {
+        super.onSaveInstanceState(outState)
+
+        if(outState != null && citiesList != null) {
+            outState.putSerializable("lista", citiesList as Serializable)
+        }
+    }
+
+    override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        savedInstanceState?.let {
+            citiesList = savedInstanceState.getSerializable("lista") as List<CityDO>?
+
+            listView.adapter = SimpleAdapter(activity,
+                    buildListViewDataSet(citiesList!!),
+                    android.R.layout.simple_list_item_2,
+                    arrayOf("city", "country"),
+                    intArrayOf(android.R.id.text1, android.R.id.text2))
+        }
+    }
 
     /**
      * Called when the user press an item of ListView
@@ -90,7 +106,7 @@ class CitiesListFragment : ListFragment() {
         editor.commit()
     }
 
-    public fun doSearch() {
+    fun doSearch() {
         if(txtSearchStr.text.toString().length == 0 || searching) return
 
         // show spinner while wait for the response
@@ -98,6 +114,7 @@ class CitiesListFragment : ListFragment() {
         searching = true
         // flush listView
         listView.adapter = null
+
         activity.application.weatherManager.searchCityByName(URLEncoder.encode(txtSearchStr.text.trim().toString(),"UTF-8"),
                 object : ICallbackSet {
                     override fun onError(error: VolleyError) {
@@ -138,13 +155,5 @@ class CitiesListFragment : ListFragment() {
         }
         return retList
     }
-
-//    override fun onViewStateRestored(savedInstanceState: Bundle?) {
-//        super.onViewStateRestored(savedInstanceState)
-//
-//        savedInstanceState?.let {
-//            citiesList = savedInstanceState.getSerializable("lista") as List<CityDO>?
-//        }
-//    }
 
 }
