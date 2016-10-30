@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/weather_detail_fragment">
@@ -28,17 +29,14 @@
         android:orientation="horizontal"
         android:layout_width="383dp"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal">
+        android:weightSum="1">
 
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:text="--"
-            android:id="@+id/weatherMain" />
-
-        <Space
-            android:layout_width="50dp"
-            android:layout_height="match_parent" />
+            android:id="@+id/weatherMain"
+            android:layout_weight="0.10"
+            android:layout_width="100dp" />
 
         <ImageView
             android:id="@+id/imageViewWeatherState"
@@ -46,11 +44,6 @@
             android:layout_height="50dp" />
 
     </LinearLayout>
-
-    <Space
-        android:layout_width="match_parent"
-        android:layout_height="20dp" />
-
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -62,7 +55,9 @@
         android:layout_height="wrap_content"
         android:text="--"
         android:id="@+id/weatherDescription" />
-
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="10dp" />
     <TextView
         android:text="@string/weather_humidity"
         android:layout_width="match_parent"
@@ -74,7 +69,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/weatherhumidity" />
-
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="10dp" />
     <TextView
         android:text="@string/weather_temp_current"
         android:layout_width="match_parent"
@@ -86,7 +83,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/weatherTempCurrent" />
-
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="10dp" />
     <TextView
         android:text="@string/weather_temp_max"
         android:layout_width="match_parent"
@@ -98,7 +97,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/weatherTempMax" />
-
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="10dp" />
     <TextView
         android:text="@string/weather_temp_min"
         android:layout_width="match_parent"
@@ -110,5 +111,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/weatherTempMin" />
-
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="10dp" />
 </LinearLayout>
