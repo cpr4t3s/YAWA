@@ -1,6 +1,5 @@
 package com.isel.pdm.yawa
 
-import android.app.Fragment
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import com.isel.pdm.yawa.fragments.ForecastFragment

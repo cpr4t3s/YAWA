@@ -8,7 +8,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-import com.isel.pdm.yawa.DataContainers.CityDO
 import com.isel.pdm.yawa.DataContainers.WeatherStateDO
 import com.isel.pdm.yawa.R
 import com.isel.pdm.yawa.defaultLocation
@@ -16,13 +15,13 @@ import com.isel.pdm.yawa.settingsFileName
 import com.isel.pdm.yawa.settingsLocationStr
 
 
+/**
+ * UI can be updated right away when this fragment is created, setting this property
+ *  - used to show forecast in ForecastActivity
+ * Or it can be set later, calling updateUi() method and passing a WeatherStateDO
+ *  - used to show current weather in MainActivity
+ */
 class WeatherDetailsFragment : Fragment() {
-    /**
-     * UI can be updated right away when this fragment is created, setting this property
-     *  - used to show forecast in ForecastActivity
-     * Or it can be set later, calling updateUi() method and passing a WeatherStateDO
-     *  - user to show current weather in MainActivity
-     */
     var weatherDO: WeatherStateDO? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,

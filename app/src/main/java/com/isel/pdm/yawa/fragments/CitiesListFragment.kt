@@ -20,6 +20,7 @@ import java.util.*
 class CitiesListFragment : ListFragment() {
     companion object {
         val SEARCH_TEXT_KEY : String = "searchTextKey"
+        val CITIES_LIST_TAG: String = "citieslisttag"
     }
 
     // List of CityDOs returned by the search. Used to pass the weather to weatherManager
@@ -51,7 +52,7 @@ class CitiesListFragment : ListFragment() {
         super.onSaveInstanceState(outState)
 
         if(outState != null && citiesList != null) {
-            outState.putSerializable("lista", citiesList as Serializable)
+            outState.putSerializable(CITIES_LIST_TAG, citiesList as Serializable)
         }
     }
 
@@ -59,13 +60,15 @@ class CitiesListFragment : ListFragment() {
         super.onViewCreated(view, savedInstanceState)
 
         savedInstanceState?.let {
-            citiesList = savedInstanceState.getSerializable("lista") as List<CityDO>?
+            citiesList = savedInstanceState.getSerializable(CITIES_LIST_TAG) as List<CityDO>?
 
-            listView.adapter = SimpleAdapter(activity,
-                    buildListViewDataSet(citiesList!!),
-                    android.R.layout.simple_list_item_2,
-                    arrayOf("city", "country"),
-                    intArrayOf(android.R.id.text1, android.R.id.text2))
+            citiesList?.let {
+                listView.adapter = SimpleAdapter(activity,
+                        buildListViewDataSet(citiesList!!),
+                        android.R.layout.simple_list_item_2,
+                        arrayOf("city", "country"),
+                        intArrayOf(android.R.id.text1, android.R.id.text2))
+            }
         }
     }
 
