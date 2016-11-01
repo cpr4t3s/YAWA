@@ -29,4 +29,6 @@
     <string name="celsius">Celsius</string>
     <string name="fahrenheit">Fahrenheit</string>
     <string name="settings_temp_units_short_title">Units</string>
+    <string name="settings_forecastDays">Forcast Days</string>
+    <string name="setings_select_nunmber">Give me a number</string>
 </resources>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="api_version">2.5</string>
-    <string name="get_forcast_days">5</string>
+
     <string name="api_key">c226cf6a4ad5aa38c309f63dfaedeabb</string>
     <string name="url_request">http://api.openweathermap.org/data/{0}/weather?q={1}&amp;appid={2}&amp;lang={3}&amp;units={4}</string>
     <string name="weather_state_icon_ulr">http://openweathermap.org/img/w/{0}.png</string>
@@ -9,6 +9,7 @@
     <!-- Lisbon, PT ID -->
     <string name="default_cityID">2267057</string>
     <string name="default_units">metric</string>
+    <string name="default_forecast_days">5</string>
     <string name="get_search_cities_url">http://api.openweathermap.org/data/{0}/find?q={1}&amp;type=like&amp;mode=json&amp;appid={2}&amp;lang={3}&amp;units={4}</string>
     <string name="get_forcast_city_url">http://api.openweathermap.org/data/{0}/forecast/daily?id={1}&amp;cnt={2}&amp;appid={3}&amp;lang={4}&amp;units={5}</string>
     </resources>

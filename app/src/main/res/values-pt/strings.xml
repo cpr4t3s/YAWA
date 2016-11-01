@@ -31,5 +31,7 @@
     <string name="celsius">Celsius</string>
     <string name="fahrenheit">Fahrenheit</string>
     <string name="settings_temp_units_short_title">Unidades</string>
+    <string name="settings_forecastDays">Proximos dias</string>
+    <string name="setings_select_nunmber">Escolhe um número</string>
 
 </resources>

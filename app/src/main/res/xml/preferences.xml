@@ -9,7 +9,7 @@
         android:defaultValue="@string/default_units" />
 
     <com.isel.pdm.yawa.UI.NumberPickerPreference
-        android:key="forecastDays"
-        android:title="Give me a number"
-        android:defaultValue="5" />
+        android:key="@string/settings_forecast_days_str"
+        android:title="@string/setings_select_nunmber"
+        android:defaultValue="@string/default_forecast_days" />
 </PreferenceScreen>
