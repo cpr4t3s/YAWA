@@ -45,6 +45,8 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.isel.pdm.yawa.MainActivity" />
         </activity>
+
+        <activity android:name=".SettingsActivity" />
     </application>
 
 </manifest>

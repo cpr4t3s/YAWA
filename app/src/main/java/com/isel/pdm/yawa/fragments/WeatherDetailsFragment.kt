@@ -3,6 +3,7 @@ package com.isel.pdm.yawa.fragments
 import android.app.Fragment
 import android.content.Context
 import android.os.Bundle
+import android.preference.PreferenceManager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -33,8 +34,8 @@ class WeatherDetailsFragment: Fragment() {
         super.onActivityCreated(savedInstanceState)
 
         // Set title
-        val settings = activity.getSharedPreferences(activity.application.settingsFileName, Context.MODE_PRIVATE)
-        val title = settings.getString(activity.application.settingsLocationStr, activity.application.defaultLocation)
+        val sharedPref = PreferenceManager.getDefaultSharedPreferences(activity)
+        val title = sharedPref.getString(activity.application.settingsLocationStr, activity.application.defaultLocation)
         val txtTitleCity = activity.findViewById(R.id.txtTitleCity) as TextView
         txtTitleCity.text = title
 

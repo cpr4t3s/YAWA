@@ -1,6 +1,7 @@
 package com.isel.pdm.yawa.openweather_tools
 
 import android.content.Context
+import android.preference.PreferenceManager
 
 import com.isel.pdm.yawa.R
 import java.net.URLEncoder
@@ -31,18 +32,18 @@ object URLTranslator {
         val apiVersion = context.resources.getString(API_VERSION_TEMPLATE_ID)
         val apiKey = context.resources.getString(API_KEY_TEMPLATE_ID)
         val lang = Locale.getDefault().language
+        val sharedPref = PreferenceManager.getDefaultSharedPreferences(context)
+
 
         // get location
-        val settingsFileName = context.resources.getString(R.string.settings_filename)
         val defaultLocation = context.resources.getString(R.string.default_location)
         val settingsLocationStr = context.resources.getString(R.string.settings_location_str)
-        val settings = context.getSharedPreferences(settingsFileName, Context.MODE_PRIVATE)
-        val location = URLEncoder.encode(settings.getString(settingsLocationStr, defaultLocation),"UTF-8")
+        val location = URLEncoder.encode(sharedPref.getString(settingsLocationStr, defaultLocation),"UTF-8")
 
         // set units
         val settingsUnitsStr = context.resources.getString(R.string.settings_units_str)
         val defaultUnits = context.resources.getString(R.string.default_units)
-        val units = settings.getString(settingsUnitsStr, defaultUnits)
+        val units = sharedPref.getString(settingsUnitsStr, defaultUnits)
 
         return MessageFormat.format(urlTemplate, *arrayOf(apiVersion, location, apiKey, lang, units))
     }
@@ -53,15 +54,13 @@ object URLTranslator {
         val apiVersion = context.resources.getString(API_VERSION_TEMPLATE_ID)
         val apiKey = context.resources.getString(API_KEY_TEMPLATE_ID)
         val lang = Locale.getDefault().language
-
         //
-        val settingsFileName = context.resources.getString(R.string.settings_filename)
-        val settings = context.getSharedPreferences(settingsFileName, Context.MODE_PRIVATE)
+        val sharedPref = PreferenceManager.getDefaultSharedPreferences(context)
 
         // set units
         val settingsUnitsStr = context.resources.getString(R.string.settings_units_str)
         val defaultUnits = context.resources.getString(R.string.default_units)
-        val units = settings.getString(settingsUnitsStr, defaultUnits)
+        val units = sharedPref.getString(settingsUnitsStr, defaultUnits)
 
         return MessageFormat.format(urlTemplate, *arrayOf(apiVersion, searchCity, apiKey, lang, units))
     }
@@ -75,13 +74,12 @@ object URLTranslator {
         val lang = Locale.getDefault().language
 
         //
-        val settingsFileName = context.resources.getString(R.string.settings_filename)
-        val settings = context.getSharedPreferences(settingsFileName, Context.MODE_PRIVATE)
+        val sharedPref = PreferenceManager.getDefaultSharedPreferences(context)
 
         // set units
         val settingsUnitsStr = context.resources.getString(R.string.settings_units_str)
         val defaultUnits = context.resources.getString(R.string.default_units)
-        val units = settings.getString(settingsUnitsStr, defaultUnits)
+        val units = sharedPref.getString(settingsUnitsStr, defaultUnits)
 
         return MessageFormat.format(urlTemplate, *arrayOf(apiVersion, searchCityId,forcastDays, apiKey, lang, units))
     }

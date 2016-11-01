@@ -3,6 +3,7 @@ package com.isel.pdm.yawa.fragments
 import android.app.ListFragment
 import android.content.Context
 import android.os.Bundle
+import android.preference.PreferenceManager
 import android.support.v4.widget.SwipeRefreshLayout
 import android.view.LayoutInflater
 import android.view.View
@@ -100,8 +101,8 @@ class ForecastFragment : ListFragment() {
         }
         //
         swR = activity.findViewById(R.id.forecast_weather_swiperefresh) as SwipeRefreshLayout
-        val settings = activity.getSharedPreferences(activity.application.settingsFileName, Context.MODE_PRIVATE)
-        val cityId = settings.getString(activity.application.settingsCityIDStr, activity.application.defaultCityId)
+        val sharedPref = PreferenceManager.getDefaultSharedPreferences(activity)
+        val cityId = sharedPref.getString(activity.application.settingsCityIDStr, activity.application.defaultCityId)
         swR?.setOnRefreshListener({
             activity.application.weatherManager.refreshForecastWeather(cityId, callbackSet)
         })

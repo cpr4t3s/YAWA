@@ -5,8 +5,6 @@ import com.isel.pdm.yawa.openweather_tools.OpenWeatherRequester
 
 class YAWA : Application() {
     val weatherManager by lazy { WeatherManager(this, OpenWeatherRequester(this)) }
-    // the name for shared preferences for app settings
-    val settingsFileName: String by lazy { resources.getString(R.string.settings_filename) }
     // default locations when there is no settings file
     val defaultLocation: String by lazy { resources.getString(R.string.default_location) }
     // key for locations on settings file
@@ -25,8 +23,6 @@ class YAWA : Application() {
 val Application.weatherManager : WeatherManager
     get() = (this as YAWA).weatherManager
 
-val Application.settingsFileName: String
-    get() = (this as YAWA).settingsFileName
 
 val Application.defaultLocation: String
     get() = (this as YAWA).defaultLocation

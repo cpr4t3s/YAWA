@@ -3,6 +3,7 @@ package com.isel.pdm.yawa.fragments
 import android.app.ListFragment
 import android.content.Context
 import android.os.Bundle
+import android.preference.PreferenceManager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -97,11 +98,10 @@ class CitiesListFragment : ListFragment() {
      * Configure the new city with Shared Preferences
      */
     private fun configureCity(cityName: String, country: String, cityId: String) {
-        val settingsFileName = resources.getString(R.string.settings_filename)
         val settingsLocationStr = resources.getString(R.string.settings_location_str)
         val settingsCityId = resources.getString(R.string.settings_city_id_str)
-        val settings = activity.getSharedPreferences(settingsFileName, Context.MODE_PRIVATE)
-        val editor = settings.edit()
+        val sharedPref = PreferenceManager.getDefaultSharedPreferences(activity)
+        val editor = sharedPref.edit()
 
         val str: String =cityName + "," + country
         editor.putString(settingsLocationStr, str)

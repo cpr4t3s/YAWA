@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.preference.PreferenceManager
 import android.support.v4.widget.SwipeRefreshLayout
 import android.view.*
 import android.widget.TextView
@@ -91,6 +92,8 @@ class MainActivity : AppCompatActivity() {
             R.id.settings_refresh -> application.weatherManager.refreshCurrentWeather(callbackSet)
             // Information about the application
             R.id.settings_about -> startActivity(Intent(this, AboutActivity::class.java))
+            // Information about the application
+            R.id.settings_settings -> startActivity(Intent(this, SettingsActivity::class.java))
         }
         return true
     }
@@ -105,7 +108,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setCityOnTitle() {
-        val settings = getSharedPreferences(application.settingsFileName, Context.MODE_PRIVATE)
+        val settings = PreferenceManager.getDefaultSharedPreferences(this)
         val title = settings.getString(application.settingsLocationStr, application.defaultLocation)
         txtTitleCity.text = title
     }

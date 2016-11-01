@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <ListPreference
+        android:key="@string/settings_units_str"
+        android:title="@string/settings_temp_units_title"
+        android:dialogTitle="@string/settings_temp_units_short_title"
+        android:entries="@array/temp_units_list_array"
+        android:entryValues="@array/temp_units_list_array_values"
+        android:defaultValue="@string/default_units" />
+
+    <com.isel.pdm.yawa.UI.NumberPickerPreference
+        android:key="forecastDays"
+        android:title="Give me a number"
+        android:defaultValue="5" />
+</PreferenceScreen>

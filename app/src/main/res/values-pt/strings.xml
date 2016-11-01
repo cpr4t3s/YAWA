@@ -25,5 +25,11 @@
     <string name="person2">Autor: Daniel Rosa </string>
     <string name="number2">Número: 40909 </string>
     <string name="credits">Créditos</string>
+    <string name="settings_settings">Preferências</string>
+    <string name="settings_temp_units_title">Temperatura - Unidades</string>
+    <string name="kelvin">Kelvin</string>
+    <string name="celsius">Celsius</string>
+    <string name="fahrenheit">Fahrenheit</string>
+    <string name="settings_temp_units_short_title">Unidades</string>
 
 </resources>

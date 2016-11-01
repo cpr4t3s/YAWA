@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="temp_units_list_array">
+        <item>@string/celsius</item>
+        <item>@string/fahrenheit</item>
+        <item>@string/kelvin</item>
+    </string-array>
+
+    <string-array name="temp_units_list_array_values">
+        <item>metric</item>
+        <item>imperial</item>
+        <item></item>
+    </string-array>
+</resources>
