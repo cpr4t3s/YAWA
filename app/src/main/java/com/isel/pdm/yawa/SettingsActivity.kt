@@ -9,7 +9,7 @@ class SettingsActivity: PreferenceActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        addPreferencesFromResource(R.xml.preferences);
+        addPreferencesFromResource(R.xml.preferences)
     }
 
 }

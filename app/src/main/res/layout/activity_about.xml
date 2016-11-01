@@ -52,7 +52,7 @@
 
         <Space
             android:layout_width="match_parent"
-            android:layout_height="20dp" />
+            android:layout_height="10dp" />
 
         <TextView
             android:text="@string/person2"
@@ -64,6 +64,21 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/number2" />
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="10dp" />
+
+        <TextView
+            android:text="@string/person3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/person3" />
+        <TextView
+            android:text="@string/number3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/number3" />
 
         <Space
             android:layout_width="match_parent"

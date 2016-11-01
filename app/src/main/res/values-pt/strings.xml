@@ -24,6 +24,8 @@
     <string name="number1">Número: 40908  </string>
     <string name="person2">Autor: Daniel Rosa </string>
     <string name="number2">Número: 40909 </string>
+    <string name="number3">Número: 40842</string>
+    <string name="person3">Auto: Tiago Oliveira</string>
     <string name="credits">Créditos</string>
     <string name="settings_settings">Preferências</string>
     <string name="settings_temp_units_title">Temperatura - Unidades</string>
@@ -31,7 +33,6 @@
     <string name="celsius">Celsius</string>
     <string name="fahrenheit">Fahrenheit</string>
     <string name="settings_temp_units_short_title">Unidades</string>
-    <string name="settings_forecastDays">Proximos dias</string>
-    <string name="setings_select_nunmber">Escolhe um número</string>
-
+    <string name="settings_forecastDays">Número de Previsões</string>
+    <string name="settings_select_number">Escolha um número</string>
 </resources>

@@ -82,8 +82,8 @@ object URLTranslator {
 
         // set days
         val settingsForecastDays = context.resources.getString(R.string.settings_forecast_days_str)
-        val defaultForecastDays = context.resources.getString(R.string.default_forecast_days)
-        val settingsDays = sharedPref.getInt(settingsForecastDays,defaultForecastDays as Int)
+        val defaultForecastDays = context.resources.getString(R.string.default_forecast_days).toInt()
+        val settingsDays = sharedPref.getInt(settingsForecastDays,defaultForecastDays)
 
         return MessageFormat.format(urlTemplate, *arrayOf(apiVersion, searchCityId,settingsDays, apiKey, lang, units))
     }

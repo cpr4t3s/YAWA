@@ -8,11 +8,21 @@ import com.isel.pdm.yawa.DataContainers.WeatherStateDO
 import com.isel.pdm.yawa.iterator
 
 import org.json.JSONArray
+import org.json.JSONException
 import org.json.JSONObject
 
 import java.util.*
 
 object OpenWeatherParser {
+
+    private fun getDoubleFromJSONObject(obj: JSONObject, key: String): Double {
+        try {
+            return obj.getDouble(key)
+        }
+        catch (e: JSONException) {
+            return 0.0
+        }
+    }
 
     private fun buildWeatherStateDO(weather: JSONObject, weatherDescription: JSONObject, wind: JSONObject) : WeatherStateDO {
         return WeatherStateDO(
@@ -20,15 +30,15 @@ object OpenWeatherParser {
                 weatherDescription.getString("description"),
                 weatherDescription.getString("icon"),
                 null,
-                weather.getDouble("temp"),
-                weather.getDouble("temp_min"),
-                weather.getDouble("temp_max"),
-                weather.getDouble("pressure"),
-                weather.getDouble("sea_level"),
-                weather.getDouble("grnd_level"),
-                weather.getDouble("humidity"),
-                wind.getDouble("speed"),
-                wind.getDouble("deg"),
+                getDoubleFromJSONObject(weather, "temp"),
+                getDoubleFromJSONObject(weather, "temp_min"),
+                getDoubleFromJSONObject(weather, "temp_max"),
+                getDoubleFromJSONObject(weather, "pressure"),
+                getDoubleFromJSONObject(weather, "sea_level"),
+                getDoubleFromJSONObject(weather, "grnd_level"),
+                getDoubleFromJSONObject(weather, "humidity"),
+                getDoubleFromJSONObject(wind, "speed"),
+                getDoubleFromJSONObject(wind, "deg"),
                 0
         )
     }
@@ -39,14 +49,14 @@ object OpenWeatherParser {
                 weather.getString("icon"),
                 null,
                 0.0,
-                temp.getDouble("min"),
-                temp.getDouble("max"),
-                root.getDouble("pressure"),
+                getDoubleFromJSONObject(temp, "min"),
+                getDoubleFromJSONObject(temp, "max"),
+                getDoubleFromJSONObject(root, "pressure"),
                 0.0,
                 0.0,
-                root.getDouble("humidity"),
-                root.getDouble("speed"),
-                root.getDouble("deg"),
+                getDoubleFromJSONObject(root, "humidity"),
+                getDoubleFromJSONObject(root, "speed"),
+                getDoubleFromJSONObject(root, "deg"),
                 root.getLong("dt")
         )
     }

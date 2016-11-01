@@ -12,7 +12,7 @@ import android.widget.FrameLayout
 import android.widget.NumberPicker
 
 
-class NumberPickerPreference(context: Context, attrs: AttributeSet) : DialogPreference(context, attrs) {
+class NumberPickerPreference(context: Context, attrs: AttributeSet?) : DialogPreference(context, attrs) {
     // allowed range
     val MAX_VALUE = 16
     val MIN_VALUE = 1
@@ -22,17 +22,13 @@ class NumberPickerPreference(context: Context, attrs: AttributeSet) : DialogPref
     private var picker: NumberPicker? = null
     private var value: Int = 0
 
-
-    constructor (context: Context, attrs: AttributeSet, defStyleAttr: Int): this(context, attrs){
-    }
-
     override fun onCreateDialogView(): View {
         val layoutParams = FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
         layoutParams.gravity = Gravity.CENTER
 
         picker = NumberPicker(context)
-        picker!!.setLayoutParams(layoutParams)
+        picker!!.layoutParams = layoutParams
 
         val dialogView = FrameLayout(context)
         dialogView.addView(picker)
@@ -42,16 +38,16 @@ class NumberPickerPreference(context: Context, attrs: AttributeSet) : DialogPref
 
     override fun onBindDialogView(view: View) {
         super.onBindDialogView(view)
-        picker!!.setMinValue(MIN_VALUE)
-        picker!!.setMaxValue(MAX_VALUE)
-        picker!!.setWrapSelectorWheel(WRAP_SELECTOR_WHEEL)
-        picker!!.setValue(getValue())
+        picker!!.minValue = MIN_VALUE
+        picker!!.maxValue = MAX_VALUE
+        picker!!.wrapSelectorWheel = WRAP_SELECTOR_WHEEL
+        picker!!.value = getValue()
     }
 
     override fun onDialogClosed(positiveResult: Boolean) {
         if (positiveResult) {
             picker!!.clearFocus()
-            val newValue = picker!!.getValue()
+            val newValue = picker!!.value
             if (callChangeListener(newValue)) {
                 setValue(newValue)
             }
@@ -62,7 +58,7 @@ class NumberPickerPreference(context: Context, attrs: AttributeSet) : DialogPref
         return a.getInt(index, MIN_VALUE)
     }
 
-    override fun onSetInitialValue(restorePersistedValue: Boolean, defaultValue: Any) {
+    override fun onSetInitialValue(restorePersistedValue: Boolean, defaultValue: Any?) {
         setValue(if (restorePersistedValue) getPersistedInt(MIN_VALUE) else defaultValue as Int)
     }
 
