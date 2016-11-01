@@ -115,12 +115,15 @@ class ForecastFragment : ListFragment() {
      * Called when the user press an item of ListView
      */
     private fun onListViewItemClicked(adapterView: AdapterView<*>, view: View, position: Int, id: Long) {
-        val weatherDO = activity.application.weatherManager.getLocalForecastWeather().weatherStateDOList[position]
         val newFragment = WeatherDetailsFragment()
         fragmentManager.beginTransaction().replace(R.id.forecast_data_holder, newFragment)
                 .addToBackStack(null)
                 .commit()
 
-        newFragment.weatherDO = weatherDO
+        //
+        val bundle = Bundle()
+        // TODO: set "positions" as a constant
+        bundle.putInt(WeatherDetailsFragment.POSITION_TAG, position)
+        newFragment.arguments = bundle
     }
 }

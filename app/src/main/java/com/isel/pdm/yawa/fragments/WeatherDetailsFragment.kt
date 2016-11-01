@@ -8,11 +8,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import com.isel.pdm.yawa.*
 import com.isel.pdm.yawa.DataContainers.WeatherStateDO
-import com.isel.pdm.yawa.R
-import com.isel.pdm.yawa.defaultLocation
-import com.isel.pdm.yawa.settingsFileName
-import com.isel.pdm.yawa.settingsLocationStr
 
 
 /**
@@ -21,8 +18,11 @@ import com.isel.pdm.yawa.settingsLocationStr
  * Or it can be set later, calling updateUi() method and passing a WeatherStateDO
  *  - used to show current weather in MainActivity
  */
-class WeatherDetailsFragment : Fragment() {
-    var weatherDO: WeatherStateDO? = null
+class WeatherDetailsFragment: Fragment() {
+    companion object {
+        val POSITION_TAG: String = "positiontag"
+    }
+
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
@@ -39,15 +39,19 @@ class WeatherDetailsFragment : Fragment() {
         txtTitleCity.text = title
 
         // Set weather data if already exists
-        weatherDO?.let({
-            updateUI(weatherDO)
-        })
+        arguments?.let {
+            if(arguments.containsKey(POSITION_TAG)) {
+                val position = arguments.getInt(POSITION_TAG)
+                val weatherDO = activity.application.weatherManager.getLocalForecastWeather().weatherStateDOList[position]
+                updateUI(weatherDO)
+            }
+        }
     }
 
     /**
      * Refresh the UI with weather state
      */
-    public fun updateUI(weatherState: WeatherStateDO?) {
+    fun updateUI(weatherState: WeatherStateDO?) {
         // Main state
         var tmpTextView = activity.findViewById(R.id.weatherMain) as TextView
         tmpTextView.text = weatherState?.mainState
@@ -58,8 +62,15 @@ class WeatherDetailsFragment : Fragment() {
         tmpTextView.text = weatherState?.description
         tmpTextView = activity.findViewById(R.id.weatherhumidity) as TextView
         tmpTextView.text = weatherState?.humidity.toString()
+        // we dont have Current Temp when in forecast
         tmpTextView = activity.findViewById(R.id.weatherTempCurrent) as TextView
         tmpTextView.text = weatherState?.temp.toString()
+        var tmpLabel = activity.findViewById(R.id.current_temp_label) as TextView
+        if(activity.componentName.className.equals(ForecastActivity::class.java.name)) {
+            tmpTextView.visibility = View.GONE
+            tmpLabel.visibility = View.GONE
+        }
+        //
         tmpTextView = activity.findViewById(R.id.weatherTempMax) as TextView
         tmpTextView.text = weatherState?.temp_max.toString()
         tmpTextView = activity.findViewById(R.id.weatherTempMin) as TextView

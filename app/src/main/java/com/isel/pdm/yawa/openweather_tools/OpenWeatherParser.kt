@@ -38,7 +38,7 @@ object OpenWeatherParser {
                 weather.getString("description"),
                 weather.getString("icon"),
                 null,
-                temp.getDouble("day"),
+                0.0,
                 temp.getDouble("min"),
                 temp.getDouble("max"),
                 root.getDouble("pressure"),
@@ -101,7 +101,7 @@ object OpenWeatherParser {
             // Build weather DO
             val temp: JSONObject = t.getJSONObject("temp")
             val weather: JSONObject = t.getJSONArray("weather").get(0) as JSONObject
-            val wState: WeatherStateDO = buildWeatherStateDOForForecast(t,temp, weather)
+            val wState: WeatherStateDO = buildWeatherStateDOForForecast(t, temp, weather)
             toReturn.add(wState)
         }
         return toReturn

@@ -76,7 +76,7 @@
         android:text="@string/weather_temp_current"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/textView9" />
+        android:id="@+id/current_temp_label" />
 
     <TextView
         android:text="--"

@@ -5,7 +5,7 @@ import android.support.v7.app.AppCompatActivity
 import com.isel.pdm.yawa.fragments.ForecastFragment
 
 
-class ForecastActivity : AppCompatActivity(){
+class ForecastActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
