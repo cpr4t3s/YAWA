@@ -32,7 +32,20 @@
     <string name="kelvin">Kelvin</string>
     <string name="celsius">Celsius</string>
     <string name="fahrenheit">Fahrenheit</string>
+    <string name="min_1">1 minuto</string>
+    <string name="min_2">2 minutos</string>
+    <string name="min_5">5 minutos</string>
+    <string name="min_10">10 minutos</string>
+    <string name="min_15">15 minutos</string>
+    <string name="min_30">30 minutos</string>
+    <string name="min_60">1 hora</string>
+    <string name="min_120">2 horas</string>
+    <string name="min_3600">6 horas</string>
     <string name="settings_temp_units_short_title">Unidades</string>
     <string name="settings_forecastDays">Número de Previsões</string>
     <string name="settings_select_number">Escolha um número</string>
+    <string name="settings_refresh_rate_title">Actualização Autmática</string>
+    <string name="settings_refresh_rate_short_title">Cadência</string>
+    <string name="settings_auto_refresh_summary">Actualiza o tempo automaticamente de x em x tempo</string>
+    <string name="settings_auto_refresh_title">Actualizar Automaticamente</string>
 </resources>

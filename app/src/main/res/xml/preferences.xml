@@ -8,6 +8,21 @@
         android:entryValues="@array/temp_units_list_array_values"
         android:defaultValue="@string/default_units" />
 
+    <CheckBoxPreference
+        android:key="@string/settings_auto_refresh"
+        android:title="@string/settings_auto_refresh_title"
+        android:summary="@string/settings_auto_refresh_summary"
+        android:defaultValue="true" />
+
+    <ListPreference
+        android:dependency="@string/settings_auto_refresh"
+        android:key="@string/settings_refresh_rate_str"
+        android:title="@string/settings_refresh_rate_title"
+        android:dialogTitle="@string/settings_temp_units_short_title"
+        android:entries="@array/refresh_rate_list_array"
+        android:entryValues="@array/refresh_rate_list_array_values"
+        android:defaultValue="@string/default_refresh_rate" />
+
     <com.isel.pdm.yawa.UI.NumberPickerPreference
         android:key="@string/settings_forecast_days_str"
         android:title="@string/settings_forecastDays"

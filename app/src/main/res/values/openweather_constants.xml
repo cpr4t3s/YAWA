@@ -9,6 +9,7 @@
     <!-- Lisbon, PT ID -->
     <string name="default_cityID">2267057</string>
     <string name="default_units">metric</string>
+    <string name="default_refresh_rate">60</string>
     <string name="default_forecast_days">5</string>
     <string name="get_search_cities_url">http://api.openweathermap.org/data/{0}/find?q={1}&amp;type=like&amp;mode=json&amp;appid={2}&amp;lang={3}&amp;units={4}</string>
     <string name="get_forcast_city_url">http://api.openweathermap.org/data/{0}/forecast/daily?id={1}&amp;cnt={2}&amp;appid={3}&amp;lang={4}&amp;units={5}</string>

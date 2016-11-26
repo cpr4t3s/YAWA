@@ -1,6 +1,5 @@
 package com.isel.pdm.yawa
 
-import android.content.Context
 import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
@@ -51,6 +50,10 @@ class MainActivity : AppCompatActivity() {
 
         swR.setOnRefreshListener(
                 { application.weatherManager.refreshCurrentWeather(callbackSet) })
+
+
+        //val notificationIntent: Intent = Intent(this, WeatherService::class.java)
+        //startService(notificationIntent)
     }
 
     override fun onStop() {

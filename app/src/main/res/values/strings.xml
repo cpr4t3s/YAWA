@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">YAWA</string>
+    <string name="service_name">YAWA Service</string>
     <string name="weather_description">Description</string>
     <string name="weather_humidity">Humidity</string>
     <string name="weather_main">Weather</string>
@@ -27,10 +28,23 @@
     <string name="number3">Number: 40842</string>
     <string name="credits">Credits</string>
     <string name="settings_temp_units_title">Temperature Units</string>
+    <string name="settings_auto_refresh_title">Auto-Refresh</string>
+    <string name="settings_auto_refresh_summary">Update the Weather Automaticly</string>
+    <string name="settings_refresh_rate_title">Refresh Rate</string>
     <string name="kelvin">Kelvin</string>
     <string name="celsius">Celsius</string>
     <string name="fahrenheit">Fahrenheit</string>
+    <string name="min_1">1 minute</string>
+    <string name="min_2">2 minutes</string>
+    <string name="min_5">5 minutes</string>
+    <string name="min_10">10 minutes</string>
+    <string name="min_15">15 minutes</string>
+    <string name="min_30">30 minutes</string>
+    <string name="min_60">1 hour</string>
+    <string name="min_120">2 hours</string>
+    <string name="min_3600">6 hours</string>
     <string name="settings_temp_units_short_title">Units</string>
+    <string name="settings_refresh_rate_short_title">Rate</string>
     <string name="settings_forecastDays">Forcast Days</string>
     <string name="settings_select_number">Select a number</string>
 </resources>
