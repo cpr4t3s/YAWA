@@ -3,13 +3,17 @@ package com.isel.pdm.yawa
 import android.app.AlarmManager
 import android.app.Application
 import android.app.PendingIntent
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.pm.PackageManager
 import android.os.SystemClock
 import android.preference.PreferenceManager
+import android.util.Log
 import com.isel.pdm.yawa.service.WeatherService
 import com.isel.pdm.yawa.openweather_tools.OpenWeatherRequester
+import com.isel.pdm.yawa.service.BootCompleteReceiver
 
 class YAWA : Application() {
     val weatherManager by lazy { WeatherManager(this, OpenWeatherRequester(this)) }
@@ -32,11 +36,10 @@ class YAWA : Application() {
         val refreshRate = sharedPref.getString(settingsRefreshRateStr, defaultRefreshRate!!)?.toLong()
 
         val intent = Intent(this, WeatherService::class.java)
-        amIntent = PendingIntent.getService(this, 0, intent, 0)
+        amIntent = PendingIntent.getService(this, 3, intent, 0)
         val alarm = this.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         alarm.setInexactRepeating(AlarmManager.ELAPSED_REALTIME, SystemClock.elapsedRealtime(),
-                //refreshRate!! * 1000 * 60, amIntent)
-                10 * 1000, amIntent)
+                refreshRate!! * 1000 * 60, amIntent)
     }
 
     /**
@@ -47,21 +50,35 @@ class YAWA : Application() {
         val autoRefreshPolicy = prefs.getBoolean(settingsAutoRefreshStr, true)
 
         autoRefreshEnabled = autoRefreshPolicy
-        if(autoRefreshEnabled) registerServiceOnAlarmManager()
+        if(autoRefreshEnabled) {
+            registerServiceOnAlarmManager()
+            overrideBootIntentConfig(PackageManager.COMPONENT_ENABLED_STATE_ENABLED)
+        }
+        else {
+            overrideBootIntentConfig(PackageManager.COMPONENT_ENABLED_STATE_DISABLED)
+        }
     }
 
     private fun setAutoRefreshAfterPrefChange(enabled: Boolean) {
         autoRefreshEnabled = enabled
+        var state: Int
         if(enabled) {
             registerServiceOnAlarmManager()
+            state = PackageManager.COMPONENT_ENABLED_STATE_ENABLED
         } else {
             val alarm = this.getSystemService(Context.ALARM_SERVICE) as AlarmManager
             alarm.cancel(amIntent)
+            state = PackageManager.COMPONENT_ENABLED_STATE_DISABLED
         }
 
-        println("Auto Refresh enabled: " + enabled)
-        // TODO: meter aqui o codigo para fazer reset as definicoes do manifest para ignorar o
-        // TODO: evento do boot completed caso as actualizações automaticas nao estejam habilitadas
+        overrideBootIntentConfig(state)
+    }
+
+    private fun overrideBootIntentConfig(state: Int) {
+        // overrides BootCompleteReceiver configurations in manifest file
+        // we don't want to receive BOOT_COMPLETED intent when we have auto-refresh disabled
+        val receiver = ComponentName(this, BootCompleteReceiver::class.java)
+        packageManager.setComponentEnabledSetting(receiver, state, PackageManager.DONT_KILL_APP)
     }
 
     override fun onCreate() {
@@ -78,7 +95,6 @@ class YAWA : Application() {
                         getBoolean(key, true))
             }
         }
-
     }
 }
 

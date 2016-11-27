@@ -1,13 +1,10 @@
 package com.isel.pdm.yawa.service
 
-import android.app.AlarmManager
-import android.app.PendingIntent
 import android.app.Service
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.os.*
-import android.preference.PreferenceManager
 import android.util.Log
 import android.widget.Toast
 import com.android.volley.VolleyError
@@ -88,11 +85,6 @@ class WeatherService: Service() {
     }
 
 
-    /**
-     * intent.what
-     *  - 0: get current weather
-     *  - 1: get forecast
-     */
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.e("!!!", "New Request")
 
