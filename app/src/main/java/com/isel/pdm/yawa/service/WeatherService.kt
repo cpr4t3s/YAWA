@@ -2,22 +2,26 @@ package com.isel.pdm.yawa.service
 
 import android.app.Service
 import android.content.BroadcastReceiver
+import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.*
 import android.util.Log
+import android.widget.SimpleCursorAdapter
 import android.widget.Toast
 import com.android.volley.VolleyError
 import com.isel.pdm.yawa.DataContainers.WeatherStateDO
 import com.isel.pdm.yawa.ICallbackSet
 import com.isel.pdm.yawa.R
 import com.isel.pdm.yawa.YAWA
+import com.isel.pdm.yawa.provider.WeatherContract
 import com.isel.pdm.yawa.weatherManager
 
 
 class BootCompleteReceiver: BroadcastReceiver() {
     override fun onReceive(context: Context?, p1: Intent?) {
-        // we get and ReceiverResctrictredContext in context, so we need a cast
+        // we get an ReceiverResctrictredContext in context, so we need a cast
         val app = context?.applicationContext as YAWA
         app.registerServiceOnAlarmManager()
     }
@@ -44,10 +48,49 @@ class WeatherService: Service() {
 
             override fun onSucceed(response: Any) {
                 val weatherState = response as WeatherStateDO
+                readData()
                 Log.e(">>>", "description: " + weatherState.description)
                 Log.e(">>>", "temp: " + weatherState.temp)
+                //val uri = insertData(weatherState)
+                //Log.e(">>>", "uri: " + uri)
+                readData()
             }
         }
+    }
+
+    private fun readData() {
+        val projection = arrayOf<String>(
+                WeatherContract.Weather.DESCRIPTION,
+                WeatherContract.Weather.TEMPERATURE,
+                WeatherContract.Weather.TEMPERATURE_MAX,
+                WeatherContract.Weather.TEMPERATURE_MIN
+        )
+
+        val mCursor = contentResolver.query(
+                WeatherContract.Weather.CONTENT_URI,
+                projection,
+                null,
+                null,
+                WeatherContract.Weather.DEFAULT_SORT_ORDER)
+
+        Log.e("!!!!!!!!!!!!!!!!", "mCursor Count: " + mCursor)
+    }
+
+    private fun insertData(weather: WeatherStateDO): Uri {
+        val mNewValues = ContentValues()
+        val newUri: Uri
+
+        mNewValues.put(WeatherContract.Weather.DESCRIPTION, weather.description)
+        mNewValues.put(WeatherContract.Weather.TEMPERATURE, weather.temp)
+        mNewValues.put(WeatherContract.Weather.TEMPERATURE_MAX, weather.temp_max)
+        mNewValues.put(WeatherContract.Weather.TEMPERATURE_MIN, weather.temp_min)
+
+        newUri = contentResolver.insert(
+                WeatherContract.Weather.CONTENT_URI, // the user dictionary content URI
+                mNewValues                          // the values to insert
+        )
+
+        return newUri
     }
 
 

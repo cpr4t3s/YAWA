@@ -20,6 +20,11 @@
             </intent-filter>
         </receiver>
 
+        <provider
+            android:authorities="com.isel.pdm.yawa.provider"
+            android:name=".provider.WeatherProvider"
+            android:exported="false" />
+
         <service
             android:name=".service.WeatherService"
             android:description="@string/service_name" />
