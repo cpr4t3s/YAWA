@@ -1,4 +1,4 @@
-package com.isel.pdm.yawa.Service
+package com.isel.pdm.yawa.service
 
 import android.app.AlarmManager
 import android.app.PendingIntent
@@ -14,21 +14,15 @@ import com.android.volley.VolleyError
 import com.isel.pdm.yawa.DataContainers.WeatherStateDO
 import com.isel.pdm.yawa.ICallbackSet
 import com.isel.pdm.yawa.R
+import com.isel.pdm.yawa.YAWA
 import com.isel.pdm.yawa.weatherManager
 
 
 class BootCompleteReceiver: BroadcastReceiver() {
     override fun onReceive(context: Context?, p1: Intent?) {
-            val sharedPref = PreferenceManager.getDefaultSharedPreferences(context)
-            val settingsRefreshRateStr = context?.resources?.getString(R.string.settings_refresh_rate_str)
-            val defaultRefreshRate = context?.resources?.getString(R.string.default_refresh_rate)
-            val refreshRate = sharedPref.getString(settingsRefreshRateStr, defaultRefreshRate!!)?.toLong()
-
-            val intent = Intent(context, WeatherService::class.java)
-            val pIntent = PendingIntent.getService(context, 0, intent, 0)
-            val alarm = context?.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-            alarm.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime(),
-                    refreshRate!! * 1000 * 60, pIntent)
+        // we get and ReceiverResctrictredContext in context, so we need a cast
+        val app = context?.applicationContext as YAWA
+        app.registerServiceOnAlarmManager()
     }
 }
 

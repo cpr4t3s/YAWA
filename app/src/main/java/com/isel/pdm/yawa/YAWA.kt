@@ -8,7 +8,7 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.os.SystemClock
 import android.preference.PreferenceManager
-import com.isel.pdm.yawa.Service.WeatherService
+import com.isel.pdm.yawa.service.WeatherService
 import com.isel.pdm.yawa.openweather_tools.OpenWeatherRequester
 
 class YAWA : Application() {
@@ -35,7 +35,8 @@ class YAWA : Application() {
         amIntent = PendingIntent.getService(this, 0, intent, 0)
         val alarm = this.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         alarm.setInexactRepeating(AlarmManager.ELAPSED_REALTIME, SystemClock.elapsedRealtime(),
-                refreshRate!! * 1000 * 60, amIntent)
+                //refreshRate!! * 1000 * 60, amIntent)
+                10 * 1000, amIntent)
     }
 
     /**
