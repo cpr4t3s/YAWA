@@ -2,28 +2,23 @@ package com.isel.pdm.yawa.service
 
 import android.app.Service
 import android.content.BroadcastReceiver
-import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.os.*
 import android.util.Log
-import android.widget.SimpleCursorAdapter
-import android.widget.Toast
 import com.android.volley.VolleyError
+import com.isel.pdm.yawa.*
 import com.isel.pdm.yawa.DataContainers.WeatherStateDO
-import com.isel.pdm.yawa.ICallbackSet
-import com.isel.pdm.yawa.R
-import com.isel.pdm.yawa.YAWA
-import com.isel.pdm.yawa.provider.WeatherContract
-import com.isel.pdm.yawa.weatherManager
+import com.isel.pdm.yawa.tools.DateConverter
+import java.text.SimpleDateFormat
+import java.util.*
 
 
 class BootCompleteReceiver: BroadcastReceiver() {
     override fun onReceive(context: Context?, p1: Intent?) {
         // we get an ReceiverResctrictredContext in context, so we need a cast
         val app = context?.applicationContext as YAWA
-        app.registerServiceOnAlarmManager()
+        app.tryRegisterServiceOnAlarmManager()
     }
 }
 
@@ -33,73 +28,35 @@ class BootCompleteReceiver: BroadcastReceiver() {
 class WeatherService: Service() {
     private var mServiceLooper: Looper? = null
     private var mServiceHandler: ServiceHandler? = null
-    companion object {
-        val OPERATION_KEY: String = "operation"
-        val OPERATION_DEFAULT: Int = 0
-    }
+    private var updatingCurrentWeather: Boolean = false
 
     private val callbackSet : ICallbackSet by lazy {
         object : ICallbackSet {
             override fun onError(error: VolleyError) {
-                //
-                Toast.makeText(this@WeatherService,
-                        resources.getString(R.string.error1001), Toast.LENGTH_SHORT).show()
+                Log.e(YAWA.YAWA_ERROR_TAG, resources.getString(R.string.error1001))
+                Log.e(YAWA.YAWA_ERROR_TAG, error.message)
             }
 
-            override fun onSucceed(response: Any) {
+            override fun onSucceed(response: Any?) {
                 val weatherState = response as WeatherStateDO
-                readData()
-                Log.e(">>>", "description: " + weatherState.description)
-                Log.e(">>>", "temp: " + weatherState.temp)
-                //val uri = insertData(weatherState)
-                //Log.e(">>>", "uri: " + uri)
-                readData()
+                Log.e(YAWA.YAWA_INFO_TAG, "description: " + weatherState.description)
+                Log.e(YAWA.YAWA_INFO_TAG, "temp: " + weatherState.temp)
+                val date = DateConverter.unixSecondsToDateString(weatherState.date,
+                        TimeZone.getDefault(), SimpleDateFormat("yyyy-MM-dd, HH:mm"))
+                Log.e(YAWA.YAWA_INFO_TAG, "time: " + date)
+
+                // TODO: esta variavel é alterada por varias threads... Perguntar o que se deve fazer
+                updatingCurrentWeather = false
             }
         }
     }
-
-    private fun readData() {
-        val projection = arrayOf<String>(
-                WeatherContract.Weather.DESCRIPTION,
-                WeatherContract.Weather.TEMPERATURE,
-                WeatherContract.Weather.TEMPERATURE_MAX,
-                WeatherContract.Weather.TEMPERATURE_MIN
-        )
-
-        val mCursor = contentResolver.query(
-                WeatherContract.Weather.CONTENT_URI,
-                projection,
-                null,
-                null,
-                WeatherContract.Weather.DEFAULT_SORT_ORDER)
-
-        Log.e("!!!!!!!!!!!!!!!!", "mCursor Count: " + mCursor)
-    }
-
-    private fun insertData(weather: WeatherStateDO): Uri {
-        val mNewValues = ContentValues()
-        val newUri: Uri
-
-        mNewValues.put(WeatherContract.Weather.DESCRIPTION, weather.description)
-        mNewValues.put(WeatherContract.Weather.TEMPERATURE, weather.temp)
-        mNewValues.put(WeatherContract.Weather.TEMPERATURE_MAX, weather.temp_max)
-        mNewValues.put(WeatherContract.Weather.TEMPERATURE_MIN, weather.temp_min)
-
-        newUri = contentResolver.insert(
-                WeatherContract.Weather.CONTENT_URI, // the user dictionary content URI
-                mNewValues                          // the values to insert
-        )
-
-        return newUri
-    }
-
 
     // Handler that receives messages from the thread
     private inner class ServiceHandler(looper: Looper) : Handler(looper) {
         override fun handleMessage(msg: Message) {
             try {
                 Log.e("!!!!", "--------------------   start Request")
-                application.weatherManager.refreshCurrentWeather(callbackSet)
+                application.weatherManager.updateCurrentWeather(callbackSet)
                 Log.e("!!!!", "--------------------   stop Request")
             } catch (e: InterruptedException) {
                 // Restore interrupt status.
@@ -113,7 +70,7 @@ class WeatherService: Service() {
     }
 
     override fun onCreate() {
-        Log.e("!!!", "Service Started")
+        Log.e(YAWA.YAWA_INFO_TAG, "Service Started")
         // Start up the thread running the service.  Note that we create a
         // separate thread because the service normally runs in the process's
         // main thread, which we don't want to block.  We also make it
@@ -129,18 +86,17 @@ class WeatherService: Service() {
 
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.e("!!!", "New Request")
-
-        // For each start request, send a message to start a job and deliver the
-        // start ID so we know which request we're stopping when we finish the job
-        val msg = mServiceHandler!!.obtainMessage()
-        msg.arg1 = startId
-        if(intent != null) {
-            msg.arg2 = intent.getIntExtra(OPERATION_KEY, OPERATION_DEFAULT)
+        Log.i(YAWA.YAWA_INFO_TAG, "onStartCommand")
+        Log.i(YAWA.YAWA_INFO_TAG, "onStartCommand intent: " + intent)
+        Log.i(YAWA.YAWA_INFO_TAG, "onStartCommand intent: " + intent?.action)
+        if(intent?.action == YAWA.UPDATE_CURRENT_WEATHER_ACTION && !updatingCurrentWeather) {
+            updatingCurrentWeather = true
+            // For each start request, send a message to start a job and deliver the
+            // start ID so we know which request we're stopping when we finish the job
+            val msg = mServiceHandler!!.obtainMessage()
+            msg.arg1 = startId
+            mServiceHandler!!.sendMessage(msg)
         }
-        mServiceHandler!!.sendMessage(msg)
-
-        println("######################################################")
 
         /*
         mServiceHandler?.post {

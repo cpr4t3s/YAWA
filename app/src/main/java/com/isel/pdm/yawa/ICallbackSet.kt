@@ -4,5 +4,5 @@ import com.android.volley.VolleyError
 
 interface ICallbackSet {
     fun onError(error: VolleyError)
-    fun onSucceed(response: Any)
+    fun onSucceed(response: Any?)
 }

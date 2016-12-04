@@ -29,6 +29,9 @@ object WeatherContract {
                         MEDIA_BASE_SUBTYPE + RESOURCE
 
 
+        val CITY_ID = "cityId"
+        val CURRENT = "current"
+        val LAST_UPDATE = "lastUpdate"
         val DESCRIPTION = "description"
         val TEMPERATURE = "temp"
         val TEMPERATURE_MAX = "temp_max"
@@ -37,6 +40,9 @@ object WeatherContract {
 
         val SELECT_ALL = arrayOf(
                 BaseColumns._ID,
+                CITY_ID,
+                CURRENT,
+                LAST_UPDATE,
                 DESCRIPTION,
                 TEMPERATURE,
                 TEMPERATURE_MAX,

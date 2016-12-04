@@ -12,6 +12,7 @@ import android.widget.Toast
 import com.android.volley.VolleyError
 import com.isel.pdm.yawa.DataContainers.WeatherStateDO
 import com.isel.pdm.yawa.fragments.WeatherDetailsFragment
+import com.isel.pdm.yawa.service.WeatherService
 
 // TODO:
 // Versoes anteriores a 21 nao aparece o menu na toolbar - No meu so aparecem os menus quando carrego no botão de opções
@@ -35,7 +36,7 @@ class MainActivity : AppCompatActivity() {
                         resources.getString(R.string.error1001), Toast.LENGTH_SHORT).show()
             }
 
-            override fun onSucceed(response: Any) {
+            override fun onSucceed(response: Any?) {
                 val weatherState = response as WeatherStateDO
                 weatherFragment.updateUI(weatherState)
                 // stop the refresh animation
@@ -48,12 +49,9 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_weather__main_menu_)
 
-        swR.setOnRefreshListener(
-                { application.weatherManager.refreshCurrentWeather(callbackSet) })
-
-
-        //val notificationIntent: Intent = Intent(this, WeatherService::class.java)
-        //startService(notificationIntent)
+        val updateWeatherIntent: Intent = Intent(this, WeatherService::class.java)
+        updateWeatherIntent.action = YAWA.UPDATE_CURRENT_WEATHER_ACTION
+        swR.setOnRefreshListener({ startService(updateWeatherIntent) })
     }
 
     override fun onStop() {
@@ -92,7 +90,8 @@ class MainActivity : AppCompatActivity() {
             // show forecast weather
             R.id.settings_forecast -> startActivity(Intent(this, ForecastActivity::class.java))
             // refresh weather
-            R.id.settings_refresh -> application.weatherManager.refreshCurrentWeather(callbackSet)
+            // TODO: service updates
+            //R.id.settings_refresh -> application.weatherManager.refreshCurrentWeather(callbackSet)
             // Information about the application
             R.id.settings_about -> startActivity(Intent(this, AboutActivity::class.java))
             // Information about the application
@@ -107,7 +106,8 @@ class MainActivity : AppCompatActivity() {
         // update title
         setCityOnTitle()
         // update the weather. The weather may change when the user select a different city
-        application.weatherManager.getCurrentWeather(callbackSet)
+        // TODO: service updates
+        //application.weatherManager.getCurrentWeather(callbackSet)
     }
 
     private fun setCityOnTitle() {

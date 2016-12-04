@@ -13,7 +13,7 @@ import android.text.TextUtils
 class WeatherProvider : ContentProvider() {
 
     private val WEATHER_TABLE = 1
-    private val CURRENT_WEATHER = 2
+    private val WEATHER_ROW = 2
 
     private val URI_MATCHER: UriMatcher
 
@@ -27,7 +27,7 @@ class WeatherProvider : ContentProvider() {
         URI_MATCHER.addURI(
                 WeatherContract.AUTHORITY,
                 WeatherContract.Weather.RESOURCE + "/#",
-                CURRENT_WEATHER)
+                WEATHER_ROW)
     }
 
     private var dbHelper: DbWeatherHelper? = null
@@ -40,7 +40,7 @@ class WeatherProvider : ContentProvider() {
     override fun getType(uri: Uri?): String {
         when (URI_MATCHER.match(uri)) {
             WEATHER_TABLE -> return WeatherContract.Weather.CONTENT_TYPE
-            CURRENT_WEATHER -> return WeatherContract.Weather.CONTENT_ITEM_TYPE
+            WEATHER_ROW -> return WeatherContract.Weather.CONTENT_ITEM_TYPE
             else -> throw badUri(uri!!)
         }
     }
@@ -57,10 +57,10 @@ class WeatherProvider : ContentProvider() {
                     sortOrder = WeatherContract.Weather.DEFAULT_SORT_ORDER
                 }
             }
-            CURRENT_WEATHER -> {
-                qbuilder.tables = DbSchema.Weather.TBL_NAME
-                qbuilder.appendWhere(DbSchema.COL_ID + "=" + uri.lastPathSegment)
-            }
+//            CURRENT_WEATHER -> {
+//                qbuilder.tables = DbSchema.Weather.TBL_NAME
+//                qbuilder.appendWhere(DbSchema.COL_ID + "=" + uri.lastPathSegment)
+//            }
             else -> badUri(uri)
         }
 
@@ -84,8 +84,18 @@ class WeatherProvider : ContentProvider() {
         return ContentUris.withAppendedId(uri, newId)
     }
 
-    override fun update(uri: Uri?, values: ContentValues?, selection: String?, selectionArgs: Array<out String>?): Int {
-        throw UnsupportedOperationException("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override fun update(uri: Uri, values: ContentValues?, selection: String?, selectionArgs: Array<out String>?): Int {
+        val table: String
+        when (URI_MATCHER.match((uri))) {
+            WEATHER_TABLE -> table = DbSchema.Weather.TBL_NAME
+            else -> throw badUri(uri)
+        }
+
+        val db = dbHelper!!.writableDatabase
+        val affectedRows = db.update(table, values, selection, selectionArgs)
+
+        context.contentResolver.notifyChange(uri, null)
+        return affectedRows
     }
 
     override fun delete(uri: Uri, selection: String?, selectionArgs: Array<out String>?): Int {

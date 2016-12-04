@@ -39,7 +39,7 @@ object OpenWeatherParser {
                 getDoubleFromJSONObject(weather, "humidity"),
                 getDoubleFromJSONObject(wind, "speed"),
                 getDoubleFromJSONObject(wind, "deg"),
-                0
+                System.currentTimeMillis() / 1000L
         )
     }
     private fun buildWeatherStateDOForForecast(root: JSONObject,temp: JSONObject, weather: JSONObject) : WeatherStateDO {
@@ -68,12 +68,8 @@ object OpenWeatherParser {
         return buildWeatherStateDO(weather, weatherDescription, wind)
     }
 
-    fun setWeatherIcon(bitmap: Bitmap, weatherStateContainer: WeatherStateDO) {
-        weatherStateContainer.weatherIcon = bitmap
-    }
-
     fun parseCitiesList(jsonObject: JSONObject) : List<CityDO> {
-        var citiesList: ArrayList<CityDO> = ArrayList<CityDO>()
+        val citiesList: ArrayList<CityDO> = ArrayList<CityDO>()
 
         // check if the request is valid
         if(!jsonObject.has("list")) {
@@ -93,7 +89,6 @@ object OpenWeatherParser {
             val sysObj: JSONObject = t.getJSONObject("sys")
             val cityDO: CityDO = CityDO(
                     t.getString("name"),
-                    t.getInt("id"),
                     sysObj.getString("country"),
                     wState
             )

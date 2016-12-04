@@ -4,6 +4,5 @@
     <string name="settings_units_str">units</string>
     <string name="settings_refresh_rate_str">refresh_rate</string>
     <string name="settings_auto_refresh">auto_refresh</string>
-    <string name="settings_city_id_str">cityID</string>
     <string name="settings_forecast_days_str">forecastdays</string>
 </resources>

@@ -30,7 +30,7 @@ class ForecastFragment : ListFragment() {
                 swR?.isRefreshing = false
                 Toast.makeText(activity, R.string.error1004, Toast.LENGTH_SHORT).show()
             }
-            override fun onSucceed(response: Any) {
+            override fun onSucceed(response: Any?) {
                 swR?.isRefreshing = false
                 val forecastState = response as ForecastDO
 
@@ -102,13 +102,13 @@ class ForecastFragment : ListFragment() {
         //
         swR = activity.findViewById(R.id.forecast_weather_swiperefresh) as SwipeRefreshLayout
         val sharedPref = PreferenceManager.getDefaultSharedPreferences(activity)
-        val cityId = sharedPref.getString(activity.application.settingsCityIDStr, activity.application.defaultCityId)
+        val city = sharedPref.getString(activity.application.settingsLocationStr, activity.application.defaultLocation)
         swR?.setOnRefreshListener({
-            activity.application.weatherManager.refreshForecastWeather(cityId, callbackSet)
+            activity.application.weatherManager.refreshForecastWeather(city, callbackSet)
         })
 
         // update the UI
-        activity.application.weatherManager.getForecastByCityId(cityId, callbackSet)
+        activity.application.weatherManager.getForecastWeather(city, callbackSet)
 
     }
 

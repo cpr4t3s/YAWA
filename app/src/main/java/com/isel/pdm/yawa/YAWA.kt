@@ -16,30 +16,44 @@ import com.isel.pdm.yawa.openweather_tools.OpenWeatherRequester
 import com.isel.pdm.yawa.service.BootCompleteReceiver
 
 class YAWA : Application() {
+    companion object {
+        val YAWA_ERROR_TAG = "!!! YAWA Erro"
+        val YAWA_WARN_TAG = "!!! YAWA Wanr"
+        val YAWA_INFO_TAG = "> YAWA Info"
+        //
+        val UPDATE_CURRENT_WEATHER_ACTION = "com.isel.pdm.yawa.UPDATE_CURRENT_WEATHER"
+    }
+
     val weatherManager by lazy { WeatherManager(this, OpenWeatherRequester(this)) }
     // default locations when there is no settings file
     val defaultLocation: String by lazy { resources.getString(R.string.default_location) }
     // key for locations on settings file
     val settingsLocationStr: String by lazy { resources.getString(R.string.settings_location_str) }
     //
-    val defaultCityId: String by lazy { resources.getString(R.string.default_cityID) }
-    // key for locations on settings file
-    val settingsCityIDStr: String by lazy { resources.getString(R.string.settings_city_id_str) }
-    //
     var autoRefreshEnabled: Boolean = true
-    var amIntent: PendingIntent? = null
+    //
+    //val alarmManager by lazy {applicationContext.getSystemService(Context.ALARM_SERVICE) as AlarmManager}
+    val serviceAlarmId = 0
 
-    fun registerServiceOnAlarmManager() {
-        val sharedPref = PreferenceManager.getDefaultSharedPreferences(this)
+
+    fun tryRegisterServiceOnAlarmManager() {
         val settingsRefreshRateStr = this.resources?.getString(R.string.settings_refresh_rate_str)
         val defaultRefreshRate = this.resources?.getString(R.string.default_refresh_rate)
-        val refreshRate = sharedPref.getString(settingsRefreshRateStr, defaultRefreshRate!!)?.toLong()
+        val refreshRate = PreferenceManager.getDefaultSharedPreferences(this)
+                .getString(settingsRefreshRateStr, defaultRefreshRate!!)?.toLong()
 
-        val intent = Intent(this, WeatherService::class.java)
-        amIntent = PendingIntent.getService(this, 3, intent, 0)
-        val alarm = this.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        alarm.setInexactRepeating(AlarmManager.ELAPSED_REALTIME, SystemClock.elapsedRealtime(),
-                refreshRate!! * 1000 * 60, amIntent)
+
+        // don't duplicate the alarm if it already exists
+        val intent = Intent(applicationContext, WeatherService::class.java)
+        intent.action = YAWA.UPDATE_CURRENT_WEATHER_ACTION
+        Log.w("!!!", "////////////////////////////////////////// PendingIntent: " +
+                PendingIntent.getService(applicationContext, serviceAlarmId, intent, PendingIntent.FLAG_NO_CREATE))
+        if(PendingIntent.getService(applicationContext, serviceAlarmId, intent, PendingIntent.FLAG_NO_CREATE) == null) {
+            val alarmIntent = PendingIntent.getService(applicationContext, serviceAlarmId, intent, 0)
+            val alarmManager = applicationContext.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            alarmManager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME, SystemClock.elapsedRealtime(),
+                    refreshRate!! * 1000 * 60, alarmIntent)
+        }
     }
 
     /**
@@ -51,7 +65,7 @@ class YAWA : Application() {
 
         autoRefreshEnabled = autoRefreshPolicy
         if(autoRefreshEnabled) {
-            registerServiceOnAlarmManager()
+            tryRegisterServiceOnAlarmManager()
             overrideBootIntentConfig(PackageManager.COMPONENT_ENABLED_STATE_ENABLED)
         }
         else {
@@ -61,13 +75,16 @@ class YAWA : Application() {
 
     private fun setAutoRefreshAfterPrefChange(enabled: Boolean) {
         autoRefreshEnabled = enabled
-        var state: Int
+        val state: Int
         if(enabled) {
-            registerServiceOnAlarmManager()
+            tryRegisterServiceOnAlarmManager()
             state = PackageManager.COMPONENT_ENABLED_STATE_ENABLED
         } else {
-            val alarm = this.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-            alarm.cancel(amIntent)
+            val intent = Intent(applicationContext, WeatherService::class.java)
+            intent.action = YAWA.UPDATE_CURRENT_WEATHER_ACTION
+            val alarmIntent = PendingIntent.getService(applicationContext, serviceAlarmId, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+            val alarmManager = applicationContext.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            alarmManager.cancel(alarmIntent)
             state = PackageManager.COMPONENT_ENABLED_STATE_DISABLED
         }
 
@@ -85,14 +102,13 @@ class YAWA : Application() {
         super.onCreate()
 
         val prefs = PreferenceManager.getDefaultSharedPreferences(this)
-        setInitialRefreshPolicy(prefs)
+        //////////////////////////////setInitialRefreshPolicy(prefs)
         prefs.registerOnSharedPreferenceChangeListener { sharedPreferences, key ->
             run {
                 val settingsAutoRefreshStr = this.resources?.getString(R.string.settings_auto_refresh)
-
                 // aqui podemos ignorar os default values porque se foi alterado, já existe
-                if(key.equals(settingsAutoRefreshStr)) setAutoRefreshAfterPrefChange(sharedPreferences.
-                        getBoolean(key, true))
+                if(key.equals(settingsAutoRefreshStr))
+                    setAutoRefreshAfterPrefChange(sharedPreferences.getBoolean(key, true))
             }
         }
     }
@@ -106,12 +122,6 @@ val Application.defaultLocation: String
 
 val Application.settingsLocationStr: String
     get() = (this as YAWA).settingsLocationStr
-
-val Application.settingsCityIDStr: String
-    get() = (this as YAWA).settingsCityIDStr
-
-val Application.defaultCityId: String
-    get() = (this as YAWA).defaultCityId
 
 val Application.autoRefreshEnabled: Boolean
     get() = (this as YAWA).autoRefreshEnabled
