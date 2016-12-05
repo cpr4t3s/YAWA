@@ -20,8 +20,11 @@ class YAWA : Application() {
         val YAWA_ERROR_TAG = "!!! YAWA Erro"
         val YAWA_WARN_TAG = "!!! YAWA Wanr"
         val YAWA_INFO_TAG = "> YAWA Info"
-        //
+        // Actions
         val UPDATE_CURRENT_WEATHER_ACTION = "com.isel.pdm.yawa.UPDATE_CURRENT_WEATHER"
+        val REFRESH_WEATHER_DONE_ACTION = "com.isel.pdm.yawa.REFRESH_WEATHER_DONE"
+        // Loaders
+        val WEATHER_LOADER_ID = 1
     }
 
     val weatherManager by lazy { WeatherManager(this, OpenWeatherRequester(this)) }
@@ -60,7 +63,7 @@ class YAWA : Application() {
      * Get the configuration of Auto-Refresh on app bootup
      */
     private fun setInitialRefreshPolicy(prefs: SharedPreferences) {
-        val settingsAutoRefreshStr = this.resources.getString(R.string.settings_auto_refresh)
+        val settingsAutoRefreshStr = this.resources.getString(R.string.settings_auto_refresh_str)
         val autoRefreshPolicy = prefs.getBoolean(settingsAutoRefreshStr, true)
 
         autoRefreshEnabled = autoRefreshPolicy
@@ -102,10 +105,9 @@ class YAWA : Application() {
         super.onCreate()
 
         val prefs = PreferenceManager.getDefaultSharedPreferences(this)
-        //////////////////////////////setInitialRefreshPolicy(prefs)
         prefs.registerOnSharedPreferenceChangeListener { sharedPreferences, key ->
             run {
-                val settingsAutoRefreshStr = this.resources?.getString(R.string.settings_auto_refresh)
+                val settingsAutoRefreshStr = this.resources?.getString(R.string.settings_auto_refresh_str)
                 // aqui podemos ignorar os default values porque se foi alterado, já existe
                 if(key.equals(settingsAutoRefreshStr))
                     setAutoRefreshAfterPrefChange(sharedPreferences.getBoolean(key, true))

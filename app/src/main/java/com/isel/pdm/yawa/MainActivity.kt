@@ -1,24 +1,28 @@
 package com.isel.pdm.yawa
 
-import android.content.Intent
+import android.app.LoaderManager
+import android.content.*
+import android.database.Cursor
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.preference.PreferenceManager
+
 import android.support.v4.widget.SwipeRefreshLayout
+import android.util.Log
 import android.view.*
 import android.widget.TextView
 import android.widget.Toast
 
-import com.android.volley.VolleyError
-import com.isel.pdm.yawa.DataContainers.WeatherStateDO
 import com.isel.pdm.yawa.fragments.WeatherDetailsFragment
+import com.isel.pdm.yawa.openweather_tools.OpenWeatherParser
+import com.isel.pdm.yawa.provider.WeatherContract
 import com.isel.pdm.yawa.service.WeatherService
 
 // TODO:
 // Versoes anteriores a 21 nao aparece o menu na toolbar - No meu so aparecem os menus quando carrego no botão de opções
 // ver isto: https://guides.codepath.com/android/Using-the-App-ToolBar
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> {
     private val BACK_PRESS_INTERVAL: Long = 2000 // 2 seconds
 
     private var lastBackTime: Long = 0
@@ -26,32 +30,37 @@ class MainActivity : AppCompatActivity() {
     private val weatherFragment by lazy { fragmentManager.findFragmentById(R.id.weather_detail)
             as WeatherDetailsFragment }
     private val swR by lazy { findViewById(R.id.current_weather_swiperefresh) as SwipeRefreshLayout }
-    private val callbackSet : ICallbackSet by lazy {
-        object : ICallbackSet {
-            override fun onError(error: VolleyError) {
-                // stop the refresh animation
-                swR.isRefreshing = false
-                //
-                Toast.makeText(this@MainActivity,
-                        resources.getString(R.string.error1001), Toast.LENGTH_SHORT).show()
-            }
+    //
+    private val updateDoneReceiver: BroadcastReceiver = object: BroadcastReceiver() {
 
-            override fun onSucceed(response: Any?) {
-                val weatherState = response as WeatherStateDO
-                weatherFragment.updateUI(weatherState)
-                // stop the refresh animation
-                swR.isRefreshing = false
+        override fun onReceive(context: Context, intent: Intent) {
+            if (intent.action == YAWA.REFRESH_WEATHER_DONE_ACTION) {
+                // TODO: possível problema de concorrencia
+                this@MainActivity.runOnUiThread {
+                    this@MainActivity.swR.isRefreshing = false
+                }
             }
         }
+    }
+
+
+    private fun updateCurrentWeather() {
+        val updateWeatherIntent: Intent = Intent(this, WeatherService::class.java)
+        updateWeatherIntent.action = YAWA.UPDATE_CURRENT_WEATHER_ACTION
+        startService(updateWeatherIntent)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_weather__main_menu_)
 
-        val updateWeatherIntent: Intent = Intent(this, WeatherService::class.java)
-        updateWeatherIntent.action = YAWA.UPDATE_CURRENT_WEATHER_ACTION
-        swR.setOnRefreshListener({ startService(updateWeatherIntent) })
+        swR.setOnRefreshListener( {updateCurrentWeather()} )
+        // Register a listener for 'REFRESH_WEATHER_DONE_ACTION' broadcasts
+        val intentFilter = IntentFilter(YAWA.REFRESH_WEATHER_DONE_ACTION)
+        registerReceiver(updateDoneReceiver, intentFilter)
+
+        // initiate our loader
+        loaderManager.initLoader(YAWA.WEATHER_LOADER_ID, null, this)
     }
 
     override fun onStop() {
@@ -59,6 +68,12 @@ class MainActivity : AppCompatActivity() {
 
         // on activity's state changes we need to cancel possible requests
         application.weatherManager.cancelAllRequests()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // stop litening for broadcasts
+        unregisterReceiver(updateDoneReceiver)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -90,8 +105,7 @@ class MainActivity : AppCompatActivity() {
             // show forecast weather
             R.id.settings_forecast -> startActivity(Intent(this, ForecastActivity::class.java))
             // refresh weather
-            // TODO: service updates
-            //R.id.settings_refresh -> application.weatherManager.refreshCurrentWeather(callbackSet)
+            R.id.settings_refresh -> { swR.isRefreshing = true; updateCurrentWeather() }
             // Information about the application
             R.id.settings_about -> startActivity(Intent(this, AboutActivity::class.java))
             // Information about the application
@@ -106,8 +120,57 @@ class MainActivity : AppCompatActivity() {
         // update title
         setCityOnTitle()
         // update the weather. The weather may change when the user select a different city
-        // TODO: service updates
-        //application.weatherManager.getCurrentWeather(callbackSet)
+        loaderManager.restartLoader(YAWA.WEATHER_LOADER_ID, null, this)
+    }
+
+    override fun onLoaderReset(loader: Loader<Cursor>?) {
+        Log.e(YAWA.YAWA_ERROR_TAG, "----------onLoaderReset")
+    }
+
+    override fun onCreateLoader(id: Int, args: Bundle?): Loader<Cursor> {
+        Log.e(YAWA.YAWA_ERROR_TAG, "---------- onCreateLoader")
+        val city = PreferenceManager.getDefaultSharedPreferences(applicationContext).
+                getString(application.settingsLocationStr, application.defaultLocation)
+        val selectionClause: String =
+                WeatherContract.Weather.CITY_ID + " = ? AND " + WeatherContract.Weather.CURRENT + " = ?"
+
+        when (id) {
+            YAWA.WEATHER_LOADER_ID -> {
+                // 1 - current weather
+                val selectionArgs = arrayOf(city, "1")
+                return CursorLoader(
+                        this,
+                        WeatherContract.Weather.CONTENT_URI,
+                        WeatherContract.Weather.SELECT_ALL,
+                        selectionClause,
+                        selectionArgs,
+                        null
+                )
+            }
+            else -> {
+                Log.w(YAWA.YAWA_WARN_TAG, "Unknown id for loader on onCreateLoader")
+                throw IllegalArgumentException("id")
+            }
+        }
+    }
+
+    override fun onLoadFinished(loader: Loader<Cursor>?, data: Cursor?) {
+        Log.e(YAWA.YAWA_ERROR_TAG, "---------- onLoadFinished")
+        when(loader?.id) {
+            YAWA.WEATHER_LOADER_ID -> {
+                if (data != null) {
+                    // updates weather data
+                    val weatherState = OpenWeatherParser.parseWeatherState(data)
+                    // TODO: necessario actualizar UI Thread?
+                    if(weatherState != null)
+                        runOnUiThread { weatherFragment.updateUI(weatherState) }
+                }
+            }
+            else -> {
+                Log.w(YAWA.YAWA_WARN_TAG, "Unknown id for loader on onLoadFinished")
+                throw IllegalArgumentException("id")
+            }
+        }
     }
 
     private fun setCityOnTitle() {

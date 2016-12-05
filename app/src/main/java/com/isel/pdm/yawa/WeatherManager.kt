@@ -26,10 +26,6 @@ class WeatherManager constructor(context: Context, val requester: IRequestParser
     private val context: Context
     //private var weatherState: WeatherStateDO? = null
     private var forecastState: ForecastDO? = null
-    // true when when the app has completed at least one update of current weather
-    private var updated = false
-    // Counter to know when can update current weather's state
-    private var elapsedTime: Long = 0
     // true when when the app has completed at least one update of forecast weather
     private var forecastUpdated = false
     // Counter to know when can update forecast weather's state
@@ -96,6 +92,15 @@ class WeatherManager constructor(context: Context, val requester: IRequestParser
         mNewValues.put(WeatherContract.Weather.TEMPERATURE, weather.temp)
         mNewValues.put(WeatherContract.Weather.TEMPERATURE_MAX, weather.temp_max)
         mNewValues.put(WeatherContract.Weather.TEMPERATURE_MIN, weather.temp_min)
+        mNewValues.put(WeatherContract.Weather.MAIN_STATE, weather.mainState)
+        mNewValues.put(WeatherContract.Weather.ICON_ID, weather.weatherIconID)
+        mNewValues.put(WeatherContract.Weather.PRESSURE, weather.pressure)
+        mNewValues.put(WeatherContract.Weather.SEA_LEVEL, weather.seaLevel)
+        mNewValues.put(WeatherContract.Weather.GROUND_LEVEL, weather.groundLevel)
+        mNewValues.put(WeatherContract.Weather.HUMIDITY, weather.humidity)
+        mNewValues.put(WeatherContract.Weather.WIND_SPEED, weather.windSpeed)
+        mNewValues.put(WeatherContract.Weather.WIND_DEGREES, weather.windDegree)
+
 
         if(countExisting(city, CURRENT) == 0) {
             mNewValues.put(WeatherContract.Weather.CITY_ID, city)
@@ -264,40 +269,9 @@ class WeatherManager constructor(context: Context, val requester: IRequestParser
     }
 
     /**
-     * Set the weather to a given arg.
-     * Useful when the user select a new city - the search by city already have the weather
-     *
-     * Note: field weatherIcon may be null
-     */
-    fun setWeather(weather: WeatherStateDO) {
-        //weatherState = weather
-
-        if (weather.weatherIcon == null) {
-            getWeatherIcon(weather.weatherIconID,
-                    object : ICallbackSet {
-                        override fun onError(error: VolleyError) {
-                        }
-
-                        override fun onSucceed(response: Any?) {
-                        }
-                    })
-        }
-    }
-
-    /**
      *
      */
     fun getLocalForecastWeather(): ForecastDO {
         return forecastState!!
-    }
-
-    /**
-     * Used to clean forecast cache when a new city is configured.
-     * Cleaning the cache and reset its state forces the update next time getForecastByCityId is called
-     */
-    fun onChangeCity() {
-        forecastState = null
-        forecastUpdated = false
-        forecastElapsedTime = 0
     }
 }

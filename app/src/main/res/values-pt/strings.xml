@@ -48,4 +48,9 @@
     <string name="settings_refresh_rate_short_title">Cadência</string>
     <string name="settings_auto_refresh_summary">Actualiza o tempo automaticamente de x em x tempo</string>
     <string name="settings_auto_refresh_title">Actualizar Automaticamente</string>
+    <string name="weather_last_update">Actualizado em</string>
+    <string name="settings_only_wifi_summary">Actualiza o tempo automáticamente apenas quando ligado por Wifi</string>
+    <string name="settings_only_wifi_title">Tipo de Ligação</string>
+    <string name="settings_min_battery_title">Gestão de Bateria</string>
+    <string name="settings_min_battery_dialog_title">Desabilita updates automáticos quando o nível da bateria atinge:</string>
 </resources>

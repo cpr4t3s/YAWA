@@ -36,7 +36,14 @@ object WeatherContract {
         val TEMPERATURE = "temp"
         val TEMPERATURE_MAX = "temp_max"
         val TEMPERATURE_MIN = "temp_min"
-
+        val MAIN_STATE = "mainState"
+        val ICON_ID = "iconId"
+        val PRESSURE = "pressure"
+        val SEA_LEVEL = "seaLevel"
+        val GROUND_LEVEL = "groundLevel"
+        val HUMIDITY = "humidity"
+        val WIND_SPEED = "windSpeed"
+        val WIND_DEGREES = "windDegrees"
 
         val SELECT_ALL = arrayOf(
                 BaseColumns._ID,
@@ -46,7 +53,15 @@ object WeatherContract {
                 DESCRIPTION,
                 TEMPERATURE,
                 TEMPERATURE_MAX,
-                TEMPERATURE_MIN)
+                TEMPERATURE_MIN,
+                MAIN_STATE,
+                ICON_ID,
+                PRESSURE,
+                SEA_LEVEL,
+                GROUND_LEVEL,
+                HUMIDITY,
+                WIND_SPEED,
+                WIND_DEGREES)
 
         val DEFAULT_SORT_ORDER = DbSchema.COL_ID + " ASC"
     }

@@ -11,6 +11,9 @@ import android.widget.ImageView
 import android.widget.TextView
 import com.isel.pdm.yawa.*
 import com.isel.pdm.yawa.DataContainers.WeatherStateDO
+import com.isel.pdm.yawa.tools.DateConverter
+import java.text.SimpleDateFormat
+import java.util.*
 
 
 /**
@@ -52,20 +55,20 @@ class WeatherDetailsFragment: Fragment() {
     /**
      * Refresh the UI with weather state
      */
-    fun updateUI(weatherState: WeatherStateDO?) {
+    fun updateUI(weatherState: WeatherStateDO) {
         // Main state
         var tmpTextView = activity.findViewById(R.id.weatherMain) as TextView
-        tmpTextView.text = weatherState?.mainState
+        tmpTextView.text = weatherState.mainState
         // Description
         tmpTextView = activity.findViewById(R.id.weatherDescription) as TextView
-        tmpTextView.text = weatherState?.description
+        tmpTextView.text = weatherState.description
         tmpTextView = activity.findViewById(R.id.weatherDescription) as TextView
-        tmpTextView.text = weatherState?.description
+        tmpTextView.text = weatherState.description
         tmpTextView = activity.findViewById(R.id.weatherhumidity) as TextView
-        tmpTextView.text = weatherState?.humidity.toString()
+        tmpTextView.text = weatherState.humidity.toString()
         // we dont have Current Temp when in forecast
         tmpTextView = activity.findViewById(R.id.weatherTempCurrent) as TextView
-        tmpTextView.text = weatherState?.temp.toString()
+        tmpTextView.text = weatherState.temp.toString()
         var tmpLabel = activity.findViewById(R.id.current_temp_label) as TextView
         if(activity.componentName.className.equals(ForecastActivity::class.java.name)) {
             tmpTextView.visibility = View.GONE
@@ -73,14 +76,22 @@ class WeatherDetailsFragment: Fragment() {
         }
         //
         tmpTextView = activity.findViewById(R.id.weatherTempMax) as TextView
-        tmpTextView.text = weatherState?.temp_max.toString()
+        tmpTextView.text = weatherState.temp_max.toString()
         tmpTextView = activity.findViewById(R.id.weatherTempMin) as TextView
-        tmpTextView.text = weatherState?.temp_min.toString()
+        tmpTextView.text = weatherState.temp_min.toString()
+        tmpTextView = activity.findViewById(R.id.lastUpdateTextView) as TextView
+        val date: String
+        if(weatherState.date > 0)
+            date = DateConverter.unixSecondsToDateString(weatherState.date,
+                    TimeZone.getDefault(), SimpleDateFormat("yyyy-MM-dd, HH:mm"))
+        else
+            date = "--"
+        tmpTextView.text = date
 
         // Icon. It may be null - when a diferent city is configured
-        weatherState?.weatherIcon.let {
+        weatherState.weatherIcon.let {
             val tmpImageView = activity.findViewById(R.id.imageViewWeatherState) as ImageView
-            tmpImageView.setImageBitmap(weatherState?.weatherIcon)
+            tmpImageView.setImageBitmap(weatherState.weatherIcon)
         }
     }
 }

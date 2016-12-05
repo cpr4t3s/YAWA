@@ -12,6 +12,7 @@
     <string name="weather_seaLevel">seaLevel</string>
     <string name="weather_groundLevel">groundLevel</string>
     <string name="weather_windDegree">windDegree</string>
+    <string name="weather_last_update">Last Update</string>
     <string name="settings_setCity">Config City</string>
     <string name="settings_about">About</string>
     <string name="settings_settings">Settings</string>
@@ -29,8 +30,10 @@
     <string name="credits">Credits</string>
     <string name="settings_temp_units_title">Temperature Units</string>
     <string name="settings_auto_refresh_title">Auto-Refresh</string>
-    <string name="settings_auto_refresh_summary">Update the Weather Automaticly</string>
+    <string name="settings_auto_refresh_summary">Update the Weather Automatically</string>
     <string name="settings_refresh_rate_title">Refresh Rate</string>
+    <string name="settings_only_wifi_title">Connection Type</string>
+    <string name="settings_only_wifi_summary">Only updates weather automatically when Wifi is On</string>
     <string name="kelvin">Kelvin</string>
     <string name="celsius">Celsius</string>
     <string name="fahrenheit">Fahrenheit</string>
@@ -47,4 +50,6 @@
     <string name="settings_refresh_rate_short_title">Rate</string>
     <string name="settings_forecastDays">Forcast Days</string>
     <string name="settings_select_number">Select a number</string>
+    <string name="settings_min_battery_title">Battery Manager</string>
+    <string name="settings_min_battery_dialog_title">Disable Auto. updates when battery level reach:</string>
 </resources>

@@ -1,7 +1,7 @@
 package com.isel.pdm.yawa.fragments
 
 import android.app.ListFragment
-import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.preference.PreferenceManager
 import android.view.LayoutInflater
@@ -9,10 +9,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import com.android.volley.VolleyError
+import com.isel.pdm.yawa.*
 import com.isel.pdm.yawa.DataContainers.CityDO
-import com.isel.pdm.yawa.ICallbackSet
-import com.isel.pdm.yawa.R
-import com.isel.pdm.yawa.weatherManager
+import com.isel.pdm.yawa.service.WeatherService
 import java.io.Serializable
 import java.net.URLEncoder
 import java.util.*
@@ -73,6 +72,12 @@ class CitiesListFragment : ListFragment() {
         }
     }
 
+    private fun updateCurrentWeather() {
+        val updateWeatherIntent: Intent = Intent(activity, WeatherService::class.java)
+        updateWeatherIntent.action = YAWA.UPDATE_CURRENT_WEATHER_ACTION
+        activity.startService(updateWeatherIntent)
+    }
+
     /**
      * Called when the user press an item of ListView
      */
@@ -84,13 +89,10 @@ class CitiesListFragment : ListFragment() {
 
         // set the new city on Shared Preferences
         configureCity(cityName, country)
-        // set the weather returned by the search
-        citiesList.let{ activity.application.weatherManager.setWeather(citiesList!![position].weatherState) }
+        // updates the weather for the new city
+        updateCurrentWeather()
         //
         activity.onBackPressed()
-        // Inform wethermanager that we have changed our city. Useful to inform the mnager that it
-        // needs to make a new foreground request instead of use local cache
-        activity.application.weatherManager.onChangeCity()
     }
 
     /**

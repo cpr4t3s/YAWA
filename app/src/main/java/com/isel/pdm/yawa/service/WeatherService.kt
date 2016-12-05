@@ -35,6 +35,8 @@ class WeatherService: Service() {
             override fun onError(error: VolleyError) {
                 Log.e(YAWA.YAWA_ERROR_TAG, resources.getString(R.string.error1001))
                 Log.e(YAWA.YAWA_ERROR_TAG, error.message)
+                // Notify activitys waiting for update completion
+                sendBroadcast(Intent(YAWA.REFRESH_WEATHER_DONE_ACTION))
             }
 
             override fun onSucceed(response: Any?) {
@@ -47,6 +49,8 @@ class WeatherService: Service() {
 
                 // TODO: esta variavel é alterada por varias threads... Perguntar o que se deve fazer
                 updatingCurrentWeather = false
+                // Notify activitys waiting for update completion
+                sendBroadcast(Intent(YAWA.REFRESH_WEATHER_DONE_ACTION))
             }
         }
     }
