@@ -25,6 +25,9 @@ class YAWA : Application() {
         val AUTO_UPDATE_CURRENT_WEATHER_ACTION = "com.isel.pdm.yawa.AUTO_UPDATE_CURRENT_WEATHER"
         val UPDATE_FORECAST_WEATHER_ACTION = "com.isel.pdm.yawa.UPDATE_FORECAST_WEATHER"
         val REFRESH_WEATHER_DONE_ACTION = "com.isel.pdm.yawa.REFRESH_WEATHER_DONE"
+        //
+        val ADD_NEW_LOCATION_ACTION = "com.isel.pdm.yawa.ADD_NEW_LOCATION_ACTION"
+        val SEARCH_LOCATION_ACTION = "com.isel.pdm.yawa.SEARCH_LOCATION_ACTION"
         // Used to set DB entry as current weather or forecast weather
         val CURRENT_WEATHER_FLAG: Int = 1
         val FORECAST_WEATHER_FLAG: Int = 0

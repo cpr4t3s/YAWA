@@ -56,6 +56,7 @@
 
     <!-- Actionbar -->
     <string name="actionbar_label_actions">Actions</string>
+    <string name="actionbar_label_cities">My Cities</string>
     <string name="actionbar_item_edit">Edit Locations</string>
     <string name="actionbar_item_add">Add new Location</string>
 </resources>

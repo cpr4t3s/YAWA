@@ -6,12 +6,13 @@ import android.database.Cursor
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.preference.PreferenceManager
+import android.support.design.widget.NavigationView
+import android.support.v4.widget.DrawerLayout
 
 import android.support.v4.widget.SwipeRefreshLayout
 import android.util.Log
 import android.view.*
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 
 import com.isel.pdm.yawa.fragments.WeatherDetailsFragment
 import com.isel.pdm.yawa.openweather_tools.OpenWeatherParser
@@ -20,13 +21,15 @@ import com.isel.pdm.yawa.service.WeatherService
 
 
 
-class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> {
+class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor>, NavigationView.OnNavigationItemSelectedListener {
     private val BACK_PRESS_INTERVAL: Long = 2000 // 2 seconds
 
     private var lastBackTime: Long = 0
     private val txtTitleCity by lazy { findViewById(R.id.txtTitleCity) as TextView }
     private val weatherFragment by lazy { fragmentManager.findFragmentById(R.id.weather_detail)
             as WeatherDetailsFragment }
+    private val navigationView by lazy { findViewById(R.id.navigation_main_view) as NavigationView }
+    private val drawerLayout by lazy { findViewById(R.id.drawer_layout) as DrawerLayout }
     private val swR by lazy { findViewById(R.id.current_weather_swiperefresh) as SwipeRefreshLayout }
     //
     private val updateDoneReceiver: BroadcastReceiver = object: BroadcastReceiver() {
@@ -56,6 +59,9 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_weather__main_menu_)
+
+        // setting up selected item listener
+        navigationView.setNavigationItemSelectedListener(this)
 
         swR.setOnRefreshListener( {updateCurrentWeather()} )
         // Register a listener for 'REFRESH_WEATHER_DONE_ACTION' broadcasts
@@ -88,6 +94,12 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> 
     }
 
     override fun onBackPressed() {
+        // close navigation bar if its opened
+        if (drawerLayout.isDrawerOpen(navigationView)) {
+            drawerLayout.closeDrawer(navigationView)
+            return
+        }
+
         if (System.currentTimeMillis() - this.lastBackTime < this.BACK_PRESS_INTERVAL) {
             super.onBackPressed()
         }
@@ -101,10 +113,33 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> 
         return true
     }
 
+    override fun onNavigationItemSelected(menuItem: MenuItem): Boolean {
+        when(menuItem.itemId) {
+            R.id.navigation_add -> {
+                val intent = Intent(this, CitiesActivity::class.java)
+                intent.action = YAWA.ADD_NEW_LOCATION_ACTION
+                startActivity(intent)
+            }
+            R.id.navigation_edit -> {println("edittttttttt")}
+            else -> {
+                selectCity(menuItem.title.toString())
+                setCityOnTitle()
+                loaderManager.restartLoader(YAWA.WEATHER_LOADER_ID, null, this)
+            }
+        }
+
+        drawerLayout.closeDrawers()
+        return true
+    }
+
     override fun onOptionsItemSelected(item : MenuItem) : Boolean {
         when(item.itemId) {
             // change city
-            R.id.settings_addCity -> startActivity(Intent(this, CitiesActivity::class.java))
+            R.id.settings_addCity -> {
+                val intent = Intent(this, CitiesActivity::class.java)
+                intent.action = YAWA.SEARCH_LOCATION_ACTION
+                startActivity(intent)
+            }
             // show forecast weather
             R.id.settings_forecast -> startActivity(Intent(this, ForecastActivity::class.java))
             // refresh weather
@@ -124,6 +159,8 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> 
         setCityOnTitle()
         // update the weather. The weather may change when the user select a different city
         loaderManager.restartLoader(YAWA.WEATHER_LOADER_ID, null, this)
+
+        updateActionbarItems()
     }
 
     override fun onLoaderReset(loader: Loader<Cursor>?) {
@@ -131,6 +168,7 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> 
     }
 
     override fun onCreateLoader(id: Int, args: Bundle?): Loader<Cursor> {
+        Log.e(YAWA.YAWA_ERROR_TAG, "---------- MainActivity.onCreateLoader")
         val city = PreferenceManager.getDefaultSharedPreferences(applicationContext).
                 getString(application.settingsLocationStr, application.defaultLocation)
         val selectionClause: String =
@@ -156,6 +194,7 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> 
     }
 
     override fun onLoadFinished(loader: Loader<Cursor>?, cursor: Cursor?) {
+        Log.e(YAWA.YAWA_ERROR_TAG, "---------- MainActivity.onLoadFinished")
         when(loader?.id) {
             YAWA.WEATHER_LOADER_ID -> {
                 if (cursor != null) {
@@ -170,6 +209,47 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> 
                 throw IllegalArgumentException("id")
             }
         }
+    }
+
+    private fun updateActionbarItems() {
+        val menu = navigationView.menu
+        val selectedCity = PreferenceManager.getDefaultSharedPreferences(this)
+                .getString(application.settingsLocationStr, application.defaultLocation)
+
+        val sharedPref = PreferenceManager.getDefaultSharedPreferences(this)
+        // TODO: meter o zero com constante nas resourses
+        val citiesCounter = sharedPref.getInt("citiesCounter", 0)
+
+        val subMenu = menu.addSubMenu(R.string.actionbar_label_cities)
+
+        for (i in 0 until citiesCounter) {
+            val city = sharedPref.getString("city" + i, "--")
+            val menuItem = subMenu.add(Menu.NONE, i, Menu.NONE, city)
+            menuItem.isCheckable = true
+            if(city == selectedCity) navigationView.setCheckedItem(i)
+        }
+
+        for (i in 0 until navigationView.childCount) {
+            val child = navigationView.getChildAt(i)
+            if (child != null && child is ListView) {
+                val menuView = child
+                val adapter = menuView.adapter as HeaderViewListAdapter
+                val wrapped = adapter.wrappedAdapter as BaseAdapter
+                wrapped.notifyDataSetChanged()
+            }
+        }
+    }
+
+    /**
+     * Configure the new city with Shared Preferences
+     */
+    private fun selectCity(cityDescriptionId: String) {
+        val settingsLocationStr = resources.getString(R.string.settings_location_str)
+        val sharedPref = PreferenceManager.getDefaultSharedPreferences(this)
+        val editor = sharedPref.edit()
+
+        editor.putString(settingsLocationStr, cityDescriptionId)
+        editor.apply()
     }
 
     private fun setCityOnTitle() {

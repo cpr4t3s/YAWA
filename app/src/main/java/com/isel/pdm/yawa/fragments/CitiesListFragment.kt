@@ -1,9 +1,7 @@
 package com.isel.pdm.yawa.fragments
 
 import android.app.ListFragment
-import android.content.Intent
 import android.os.Bundle
-import android.preference.PreferenceManager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,7 +9,6 @@ import android.widget.*
 import com.android.volley.VolleyError
 import com.isel.pdm.yawa.*
 import com.isel.pdm.yawa.DataContainers.CityDO
-import com.isel.pdm.yawa.service.WeatherService
 import java.io.Serializable
 import java.net.URLEncoder
 import java.util.*
@@ -72,40 +69,11 @@ class CitiesListFragment : ListFragment() {
         }
     }
 
-    private fun updateCurrentWeather() {
-        val updateWeatherIntent: Intent = Intent(activity, WeatherService::class.java)
-        updateWeatherIntent.action = YAWA.UPDATE_CURRENT_WEATHER_ACTION
-        activity.startService(updateWeatherIntent)
-    }
-
     /**
      * Called when the user press an item of ListView
      */
     private fun onListViewItemClicked(adapterView: AdapterView<*>, view: View, position: Int, id: Long) {
-        val cityName: String = (adapterView.getItemAtPosition(position)
-                as Map<*, *>)["city"].toString()
-        val country: String = (adapterView.getItemAtPosition(position)
-                as Map<*, *>)["country"].toString()
-
-        // set the new city on Shared Preferences
-        configureCity(cityName, country)
-        // updates the weather for the new city
-        updateCurrentWeather()
-        //
-        activity.onBackPressed()
-    }
-
-    /**
-     * Configure the new city with Shared Preferences
-     */
-    private fun configureCity(cityName: String, country: String) {
-        val settingsLocationStr = resources.getString(R.string.settings_location_str)
-        val sharedPref = PreferenceManager.getDefaultSharedPreferences(activity)
-        val editor = sharedPref.edit()
-
-        val str: String =cityName + "," + country
-        editor.putString(settingsLocationStr, str)
-        editor.commit()
+        (activity as CitiesActivity).onFragmentListViewItemClicked(adapterView, view, position, id)
     }
 
     fun doSearch() {

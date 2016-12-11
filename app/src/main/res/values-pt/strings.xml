@@ -56,4 +56,5 @@
     <string name="actionbar_label_actions">Acções</string>
     <string name="actionbar_item_add">Adicionar nova Localização</string>
     <string name="actionbar_item_edit">Editar Localizações</string>
+    <string name="actionbar_label_cities">As Minhas Cidades</string>
 </resources>
