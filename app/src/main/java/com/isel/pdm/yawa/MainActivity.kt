@@ -229,15 +229,15 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor>,
             if(city == selectedCity) navigationView.setCheckedItem(i)
         }
 
-        for (i in 0 until navigationView.childCount) {
-            val child = navigationView.getChildAt(i)
-            if (child != null && child is ListView) {
-                val menuView = child
-                val adapter = menuView.adapter as HeaderViewListAdapter
-                val wrapped = adapter.wrappedAdapter as BaseAdapter
-                wrapped.notifyDataSetChanged()
-            }
-        }
+//        for (i in 0 until navigationView.childCount) {
+//            val child = navigationView.getChildAt(i)
+//            if (child != null && child is ListView) {
+//                val menuView = child
+//                val adapter = menuView.adapter as HeaderViewListAdapter
+//                val wrapped = adapter.wrappedAdapter as BaseAdapter
+//                wrapped.notifyDataSetChanged()
+//            }
+//        }
     }
 
     /**
