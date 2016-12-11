@@ -4,8 +4,8 @@ package com.isel.pdm.yawa
 import android.content.ContentValues
 import android.content.Context
 import android.graphics.Bitmap
-import android.os.SystemClock
 import android.preference.PreferenceManager
+import android.provider.BaseColumns
 import android.util.Log
 
 import com.android.volley.Request
@@ -17,30 +17,28 @@ import com.isel.pdm.yawa.DataContainers.ForecastDO
 import com.isel.pdm.yawa.DataContainers.WeatherStateDO
 import com.isel.pdm.yawa.openweather_tools.OpenWeatherParser
 import com.isel.pdm.yawa.openweather_tools.URLTranslator
+import com.isel.pdm.yawa.provider.DbSchema
 import com.isel.pdm.yawa.provider.WeatherContract
 
-import org.json.JSONObject
+
 
 class WeatherManager constructor(context: Context, val requester: IRequestParser) {
 
     private val context: Context
-    //private var weatherState: WeatherStateDO? = null
-    private var forecastState: ForecastDO? = null
-    // true when when the app has completed at least one update of forecast weather
-    private var forecastUpdated = false
-    // Counter to know when can update forecast weather's state
-    private var forecastElapsedTime: Long = 0
-    // default locations when there is no settings file
+    // default locations when there is no shared preference
     val defaultLocation: String by lazy { context.resources.getString(R.string.default_location) }
-    // key for locations on settings file
+    //
+    val defaultForecastDays: String by lazy { context.resources.getString(R.string.default_forecast_days) }
+    // key for locations in shared preferences
     val settingsLocationStr: String by lazy { context.resources.getString(R.string.settings_location_str) }
+    // key for forecast days in shared preferences
+    val settingsForecastDays: String by lazy { context.resources.getString(R.string.settings_forecast_days_str) }
 
     init {
         this.context = context.applicationContext
     }
 
     companion object {
-        private val MILLISECONDS = 1000L
         private val WEATHER_REQUEST_TAG = "weatherReq"
         private val WEATHER_SEARCH_CITY_TAG = "cityListReq"
         private val FORECAST_CITY_BY_ID_TAG = "forecastReq"
@@ -50,8 +48,10 @@ class WeatherManager constructor(context: Context, val requester: IRequestParser
     /**
      * Used to know when can just update an existing row or need to insert a new one
      */
-    private fun countExisting(city: String, current: Int): Int {
+    private fun countExisting(city: String, current: Int): List<Int> {
+        val existingIds: MutableList<Int> = mutableListOf<Int>()
         val projection = arrayOf<String>(
+                BaseColumns._ID,
                 WeatherContract.Weather.CITY_ID,
                 WeatherContract.Weather.CURRENT
         )
@@ -66,10 +66,12 @@ class WeatherManager constructor(context: Context, val requester: IRequestParser
                 selectionArgs,
                 WeatherContract.Weather.DEFAULT_SORT_ORDER)
 
-        val count = cursor.count
+        while(cursor.moveToNext()) {
+            existingIds.add(cursor.getInt(DbSchema.Weather.COLUMNS_ID.COL_ID.ordinal))
+        }
         cursor.close()
 
-        return count
+        return existingIds
     }
 
     private fun saveCurrentWeatherIcon(image: Bitmap) {
@@ -77,34 +79,17 @@ class WeatherManager constructor(context: Context, val requester: IRequestParser
     }
 
     private fun saveCurrentWeather(weather: WeatherStateDO) {
-        val CURRENT = 1
-        val mNewValues = ContentValues()
-
         val sharedPref = PreferenceManager.getDefaultSharedPreferences(context.applicationContext)
         val city = sharedPref.getString(settingsLocationStr, defaultLocation)
         val selectionClause: String =
                 WeatherContract.Weather.CITY_ID + " = ? AND " + WeatherContract.Weather.CURRENT + " = ?"
-        val selectionArgs = arrayOf(city, CURRENT.toString())
-        val currentTime = System.currentTimeMillis() / MILLISECONDS
+        val selectionArgs = arrayOf(city, YAWA.CURRENT_WEATHER_FLAG.toString())
 
-        mNewValues.put(WeatherContract.Weather.LAST_UPDATE, currentTime)
-        mNewValues.put(WeatherContract.Weather.DESCRIPTION, weather.description)
-        mNewValues.put(WeatherContract.Weather.TEMPERATURE, weather.temp)
-        mNewValues.put(WeatherContract.Weather.TEMPERATURE_MAX, weather.temp_max)
-        mNewValues.put(WeatherContract.Weather.TEMPERATURE_MIN, weather.temp_min)
-        mNewValues.put(WeatherContract.Weather.MAIN_STATE, weather.mainState)
-        mNewValues.put(WeatherContract.Weather.ICON_ID, weather.weatherIconID)
-        mNewValues.put(WeatherContract.Weather.PRESSURE, weather.pressure)
-        mNewValues.put(WeatherContract.Weather.SEA_LEVEL, weather.seaLevel)
-        mNewValues.put(WeatherContract.Weather.GROUND_LEVEL, weather.groundLevel)
-        mNewValues.put(WeatherContract.Weather.HUMIDITY, weather.humidity)
-        mNewValues.put(WeatherContract.Weather.WIND_SPEED, weather.windSpeed)
-        mNewValues.put(WeatherContract.Weather.WIND_DEGREES, weather.windDegree)
+        val mNewValues = buildCommonNewValues(weather)
 
-
-        if(countExisting(city, CURRENT) == 0) {
+        if(countExisting(city, YAWA.CURRENT_WEATHER_FLAG).size == 0) {
             mNewValues.put(WeatherContract.Weather.CITY_ID, city)
-            mNewValues.put(WeatherContract.Weather.CURRENT, CURRENT)
+            mNewValues.put(WeatherContract.Weather.CURRENT, YAWA.CURRENT_WEATHER_FLAG)
             context.contentResolver.insert(
                     WeatherContract.Weather.CONTENT_URI,
                     mNewValues
@@ -119,6 +104,61 @@ class WeatherManager constructor(context: Context, val requester: IRequestParser
         }
     }
 
+    private fun buildCommonNewValues(weatherState: WeatherStateDO): ContentValues {
+        val mNewValues = ContentValues()
+
+        mNewValues.put(WeatherContract.Weather.LAST_UPDATE, weatherState.updateDate)
+        mNewValues.put(WeatherContract.Weather.FORECAST_DATE, weatherState.forecastDate)
+        mNewValues.put(WeatherContract.Weather.DESCRIPTION, weatherState.description)
+        mNewValues.put(WeatherContract.Weather.TEMPERATURE, weatherState.temp)
+        mNewValues.put(WeatherContract.Weather.TEMPERATURE_MAX, weatherState.temp_max)
+        mNewValues.put(WeatherContract.Weather.TEMPERATURE_MIN, weatherState.temp_min)
+        mNewValues.put(WeatherContract.Weather.MAIN_STATE, weatherState.mainState)
+        mNewValues.put(WeatherContract.Weather.ICON_ID, weatherState.weatherIconID)
+        mNewValues.put(WeatherContract.Weather.PRESSURE, weatherState.pressure)
+        mNewValues.put(WeatherContract.Weather.SEA_LEVEL, weatherState.seaLevel)
+        mNewValues.put(WeatherContract.Weather.GROUND_LEVEL, weatherState.groundLevel)
+        mNewValues.put(WeatherContract.Weather.HUMIDITY, weatherState.humidity)
+        mNewValues.put(WeatherContract.Weather.WIND_SPEED, weatherState.windSpeed)
+        mNewValues.put(WeatherContract.Weather.WIND_DEGREES, weatherState.windDegree)
+
+        return mNewValues
+    }
+
+    private fun saveForecastWeather(forecastWeather: ForecastDO) {
+        val sharedPref = PreferenceManager.getDefaultSharedPreferences(context.applicationContext)
+        val city = sharedPref.getString(settingsLocationStr, defaultLocation)
+        val selectionClause: String =
+                BaseColumns._ID + " = ? AND " + WeatherContract.Weather.CITY_ID + " = ? AND " + WeatherContract.Weather.CURRENT + " = ?"
+        val forecastDays: Int = sharedPref.getInt(settingsForecastDays, defaultForecastDays.toInt())
+
+        val existingEntries: List<Int> = countExisting(city, YAWA.FORECAST_WEATHER_FLAG)
+        val toUpdate: Int = if(forecastDays <= existingEntries.size) forecastDays else existingEntries.size
+
+        for(i in 0 until toUpdate) {
+            val mNewValues = buildCommonNewValues(forecastWeather.weatherStateDOList[i])
+            val _id: Int = existingEntries[i]
+            val selectionArgs = arrayOf(_id.toString(), city, YAWA.FORECAST_WEATHER_FLAG.toString())
+            context.contentResolver.update(
+                    WeatherContract.Weather.CONTENT_URI,
+                    mNewValues,
+                    selectionClause,
+                    selectionArgs
+            )
+        }
+
+        for(i in toUpdate until forecastDays) {
+            val mNewValues = buildCommonNewValues(forecastWeather.weatherStateDOList[i])
+
+            mNewValues.put(WeatherContract.Weather.CITY_ID, city)
+            mNewValues.put(WeatherContract.Weather.CURRENT, YAWA.FORECAST_WEATHER_FLAG)
+            context.contentResolver.insert(
+                    WeatherContract.Weather.CONTENT_URI,
+                    mNewValues
+            )
+        }
+    }
+
     fun updateCurrentWeather(callbackSet : ICallbackSet?) {
         val url = URLTranslator.getCurrentWeatherURL(this.context)
 
@@ -126,21 +166,22 @@ class WeatherManager constructor(context: Context, val requester: IRequestParser
             val weatherState = OpenWeatherParser.parseWeatherState(response)
             // Stores the current weather on the content provider
             saveCurrentWeather(weatherState)
+            callbackSet?.onSucceed(weatherState)
             // Get the icon
             // TODO: Possivelmente tem de se passar as imagens para um BD independente para podermos fazer cache
-            // TODO: por isso, para já guarda-se na tabela numa BLOB
-            this@WeatherManager.getWeatherIcon(weatherState.weatherIconID,
-                    object: ICallbackSet {
-                        override fun onError(error: VolleyError) {
-                            callbackSet?.onError(error)
-                        }
-                        override fun onSucceed(response: Any?) {
-                            if(response != null)
-                                saveCurrentWeatherIcon(response as Bitmap)
-                            callbackSet?.onSucceed(weatherState)
-                        }
-
-                    })
+            // TODO: corrigir depois de se saber como serão as caches
+//            this@WeatherManager.getWeatherIcon(weatherState.weatherIconID,
+//                    object: ICallbackSet {
+//                        override fun onError(error: VolleyError) {
+//                            callbackSet?.onError(error)
+//                        }
+//                        override fun onSucceed(response: Any?) {
+//                            if(response != null)
+//                                saveCurrentWeatherIcon(response as Bitmap)
+//                            callbackSet?.onSucceed(weatherState)
+//                        }
+//
+//                    })
         }, Response.ErrorListener { error ->
             Log.e(YAWA.YAWA_ERROR_TAG, "Error on 'updateCurrentWeather()'.\n" + error.message)
             callbackSet?.onError(error)
@@ -191,36 +232,34 @@ class WeatherManager constructor(context: Context, val requester: IRequestParser
         this.requester.addRequest(jsObjRequest)
     }
 
-    private fun setForecastWeather(jsonObject: JSONObject) {
-        forecastState = OpenWeatherParser.parseForecastCity(jsonObject)
-    }
-
     private fun setForegroundWeatherIcon(bitmap: Bitmap, index: Int) {
-        forecastState?.weatherStateDOList?.get(index)?.weatherIcon = bitmap
+        //TODO: cache
+        //forecastState?.weatherStateDOList?.get(index)?.weatherIcon = bitmap
     }
 
     /**
      * Get icons bitmap. Only call onSucceed when last == true
      */
     private fun getWeatherIconForForecast(iconID: String, callbackSet : ICallbackSet, index: Int) {
-        val imageLoader = this.requester.getImgLoader()
-
-        val url = URLTranslator.getWeatherIconURL(this.context, iconID)
-        imageLoader.get(
-                url,
-                object : ImageLoader.ImageListener {
-                    override fun onResponse(response: ImageLoader.ImageContainer, isImmediate: Boolean) {
-                        response.bitmap?.let { setForegroundWeatherIcon(response.bitmap, index) }
-                        callbackSet.onSucceed( this@WeatherManager.forecastState!! )
-                    }
-
-                    override fun onErrorResponse(error: VolleyError) {
-                        Log.e(YAWA.YAWA_ERROR_TAG, "Error on 'getWeatherIconForForecast()'.\n" + error.message)
-                        //TODO: set an error image
-                        //WeatherManager.this.weatherState.setWeatherIcon(R.drawable.err_image);
-                        callbackSet.onError(error)
-                    }
-                })
+        //TODO: cache
+//        val imageLoader = this.requester.getImgLoader()
+//
+//        val url = URLTranslator.getWeatherIconURL(this.context, iconID)
+//        imageLoader.get(
+//                url,
+//                object : ImageLoader.ImageListener {
+//                    override fun onResponse(response: ImageLoader.ImageContainer, isImmediate: Boolean) {
+//                        response.bitmap?.let { setForegroundWeatherIcon(response.bitmap, index) }
+//                        callbackSet.onSucceed( this@WeatherManager.forecastState!! )
+//                    }
+//
+//                    override fun onErrorResponse(error: VolleyError) {
+//                        Log.e(YAWA.YAWA_ERROR_TAG, "Error on 'getWeatherIconForForecast()'.\n" + error.message)
+//                        //TODO: set an error image
+//                        //WeatherManager.this.weatherState.setWeatherIcon(R.drawable.err_image);
+//                        callbackSet.onError(error)
+//                    }
+//                })
     }
 
     /**
@@ -228,20 +267,26 @@ class WeatherManager constructor(context: Context, val requester: IRequestParser
      * To get all the weather icons it calls getWeatherIconForForecast() for each day
      * city - Ex.: Lisbon,pt
      */
-    private fun updateForecastWeather(city: String, callbackSet: ICallbackSet) {
-        val url = URLTranslator.getForecastWeather(this.context, city)
+    fun updateForecastWeather(callbackSet: ICallbackSet?) {
+        val url = URLTranslator.getForecastWeather(this.context)
 
         val jsObjRequest = JsonObjectRequest(Request.Method.GET, url, null, Response.Listener<org.json.JSONObject> { response ->
-            setForecastWeather(response)
+            val forecastWeather = OpenWeatherParser.parseForecastCity(response)
+
+            // Stores the forecast weather on the content provider
+            saveForecastWeather(forecastWeather)
+            callbackSet?.onSucceed(forecastWeather)
+
+            // TODO: corrigir depois de saber como devem ser as caches
             // Get all the weather icons bitmap for each day in forecast
-            var idx = 0
-            for(weatherDO in forecastState?.weatherStateDOList!!) {
-                getWeatherIconForForecast(weatherDO.weatherIconID, callbackSet, idx)
-                idx++
-            }
+//            var idx = 0
+//            for(weatherDO in forecastState?.weatherStateDOList!!) {
+//                getWeatherIconForForecast(weatherDO.weatherIconID, callbackSet, idx)
+//                idx++
+//            }
         }, Response.ErrorListener { error ->
             Log.e(YAWA.YAWA_ERROR_TAG, "Error on 'updateForecastWeather()'.\n" + error.message)
-            callbackSet.onError(error)
+            callbackSet?.onError(error)
         })
 
         // add a TAG to easily cancel the request if necessary
@@ -250,28 +295,24 @@ class WeatherManager constructor(context: Context, val requester: IRequestParser
         this.requester.addRequest(jsObjRequest)
     }
 
-    fun getForecastWeather(city : String, callbackSet : ICallbackSet){
-        if (SystemClock.elapsedRealtime() - this.forecastElapsedTime < 60000) {
-            if (this.forecastUpdated) {
-                callbackSet.onSucceed(this.forecastState!!)
-            }
+    fun getSpecificForecastDay(city: String, id: Int): WeatherStateDO {
 
-            return
-        }
-        updateForecastWeather(city, callbackSet)
-    }
+        val selectionClause: String =
+                WeatherContract.Weather.CITY_ID + " = ? AND " + WeatherContract.Weather.CURRENT + " = ?"
+        val selectionArgs = arrayOf(city, YAWA.FORECAST_WEATHER_FLAG.toString())
+        //
+        val cursor = context.contentResolver.query(
+                WeatherContract.Weather.CONTENT_URI,
+                WeatherContract.Weather.SELECT_ALL,
+                selectionClause,
+                selectionArgs,
+                WeatherContract.Weather.DEFAULT_SORT_ORDER)
 
-    /**
-     * Force the update
-     */
-    fun refreshForecastWeather(city : String, callbackSet : ICallbackSet) {
-        updateForecastWeather(city, callbackSet)
-    }
+        // set the cursor in the right position
+        cursor.moveToPosition(id)
+        val weatherState = OpenWeatherParser.parseWeatherState(cursor)
+        cursor.close()
 
-    /**
-     *
-     */
-    fun getLocalForecastWeather(): ForecastDO {
-        return forecastState!!
+        return weatherState
     }
 }

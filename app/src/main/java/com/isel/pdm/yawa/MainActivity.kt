@@ -18,9 +18,7 @@ import com.isel.pdm.yawa.openweather_tools.OpenWeatherParser
 import com.isel.pdm.yawa.provider.WeatherContract
 import com.isel.pdm.yawa.service.WeatherService
 
-// TODO:
-// Versoes anteriores a 21 nao aparece o menu na toolbar - No meu so aparecem os menus quando carrego no botão de opções
-// ver isto: https://guides.codepath.com/android/Using-the-App-ToolBar
+
 
 class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> {
     private val BACK_PRESS_INTERVAL: Long = 2000 // 2 seconds
@@ -38,6 +36,11 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> 
                 // TODO: possível problema de concorrencia
                 this@MainActivity.runOnUiThread {
                     this@MainActivity.swR.isRefreshing = false
+                }
+
+                val errTag: String = "errMsg"
+                if(intent.hasExtra(errTag)) {
+                    Toast.makeText(this@MainActivity, intent.getStringExtra(errTag), Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -124,11 +127,10 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> 
     }
 
     override fun onLoaderReset(loader: Loader<Cursor>?) {
-        Log.e(YAWA.YAWA_ERROR_TAG, "----------onLoaderReset")
+        Log.e(YAWA.YAWA_ERROR_TAG, "---------- MainActivity.onLoaderReset")
     }
 
     override fun onCreateLoader(id: Int, args: Bundle?): Loader<Cursor> {
-        Log.e(YAWA.YAWA_ERROR_TAG, "---------- onCreateLoader")
         val city = PreferenceManager.getDefaultSharedPreferences(applicationContext).
                 getString(application.settingsLocationStr, application.defaultLocation)
         val selectionClause: String =
@@ -136,8 +138,7 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> 
 
         when (id) {
             YAWA.WEATHER_LOADER_ID -> {
-                // 1 - current weather
-                val selectionArgs = arrayOf(city, "1")
+                val selectionArgs = arrayOf(city, YAWA.CURRENT_WEATHER_FLAG.toString())
                 return CursorLoader(
                         this,
                         WeatherContract.Weather.CONTENT_URI,
@@ -154,16 +155,14 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> 
         }
     }
 
-    override fun onLoadFinished(loader: Loader<Cursor>?, data: Cursor?) {
-        Log.e(YAWA.YAWA_ERROR_TAG, "---------- onLoadFinished")
+    override fun onLoadFinished(loader: Loader<Cursor>?, cursor: Cursor?) {
         when(loader?.id) {
             YAWA.WEATHER_LOADER_ID -> {
-                if (data != null) {
+                if (cursor != null) {
                     // updates weather data
-                    val weatherState = OpenWeatherParser.parseWeatherState(data)
-                    // TODO: necessario actualizar UI Thread?
-                    if(weatherState != null)
-                        runOnUiThread { weatherFragment.updateUI(weatherState) }
+                    val weatherState = OpenWeatherParser.parseWeatherState(cursor)
+                    // TODO: necessario actualizar na UI Thread?
+                    runOnUiThread { weatherFragment.updateUI(weatherState) }
                 }
             }
             else -> {

@@ -32,6 +32,7 @@ object WeatherContract {
         val CITY_ID = "cityId"
         val CURRENT = "current"
         val LAST_UPDATE = "lastUpdate"
+        val FORECAST_DATE = "forecastDate"
         val DESCRIPTION = "description"
         val TEMPERATURE = "temp"
         val TEMPERATURE_MAX = "temp_max"
@@ -50,6 +51,7 @@ object WeatherContract {
                 CITY_ID,
                 CURRENT,
                 LAST_UPDATE,
+                FORECAST_DATE,
                 DESCRIPTION,
                 TEMPERATURE,
                 TEMPERATURE_MAX,

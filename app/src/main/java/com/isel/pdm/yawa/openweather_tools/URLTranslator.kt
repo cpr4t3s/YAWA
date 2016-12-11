@@ -64,7 +64,7 @@ object URLTranslator {
         return MessageFormat.format(urlTemplate, *arrayOf(apiVersion, searchCity, apiKey, lang, units))
     }
 
-    fun getForecastWeather(context: Context, city: String): String {
+    fun getForecastWeather(context: Context): String {
 
         val urlTemplate = context.resources.getString(FORCAST_BY_CITY_ID_URL_TEMPLATE)
 
@@ -80,12 +80,17 @@ object URLTranslator {
         val defaultUnits = context.resources.getString(R.string.default_units)
         val units = sharedPref.getString(settingsUnitsStr, defaultUnits)
 
+        // location
+        val defaultLocation = context.resources.getString(R.string.default_location)
+        val settingsLocationStr = context.resources.getString(R.string.settings_location_str)
+        val location = URLEncoder.encode(sharedPref.getString(settingsLocationStr, defaultLocation),"UTF-8")
+
         // set days
         val settingsForecastDays = context.resources.getString(R.string.settings_forecast_days_str)
         val defaultForecastDays = context.resources.getString(R.string.default_forecast_days).toInt()
         val settingsDays = sharedPref.getInt(settingsForecastDays,defaultForecastDays)
 
-        return MessageFormat.format(urlTemplate, *arrayOf(apiVersion, city, settingsDays, apiKey, lang, units))
+        return MessageFormat.format(urlTemplate, *arrayOf(apiVersion, location, settingsDays, apiKey, lang, units))
     }
 }
 

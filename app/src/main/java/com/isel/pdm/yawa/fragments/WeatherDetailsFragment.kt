@@ -38,15 +38,15 @@ class WeatherDetailsFragment: Fragment() {
 
         // Set title
         val sharedPref = PreferenceManager.getDefaultSharedPreferences(activity)
-        val title = sharedPref.getString(activity.application.settingsLocationStr, activity.application.defaultLocation)
+        val city = sharedPref.getString(activity.application.settingsLocationStr, activity.application.defaultLocation)
         val txtTitleCity = activity.findViewById(R.id.txtTitleCity) as TextView
-        txtTitleCity.text = title
+        txtTitleCity.text = city
 
         // Set weather data if already exists
         arguments?.let {
             if(arguments.containsKey(POSITION_TAG)) {
-                val position = arguments.getInt(POSITION_TAG)
-                val weatherDO = activity.application.weatherManager.getLocalForecastWeather().weatherStateDOList[position]
+                val position = arguments.getInt(POSITION_TAG) - 1
+                val weatherDO = activity.application.weatherManager.getSpecificForecastDay(city, position)
                 updateUI(weatherDO)
             }
         }
@@ -81,8 +81,8 @@ class WeatherDetailsFragment: Fragment() {
         tmpTextView.text = weatherState.temp_min.toString()
         tmpTextView = activity.findViewById(R.id.lastUpdateTextView) as TextView
         val date: String
-        if(weatherState.date > 0)
-            date = DateConverter.unixSecondsToDateString(weatherState.date,
+        if(weatherState.updateDate > 0)
+            date = DateConverter.unixSecondsToDateString(weatherState.updateDate,
                     TimeZone.getDefault(), SimpleDateFormat("yyyy-MM-dd, HH:mm"))
         else
             date = "--"

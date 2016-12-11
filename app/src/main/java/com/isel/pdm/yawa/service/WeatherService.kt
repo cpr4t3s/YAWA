@@ -8,10 +8,6 @@ import android.os.*
 import android.util.Log
 import com.android.volley.VolleyError
 import com.isel.pdm.yawa.*
-import com.isel.pdm.yawa.DataContainers.WeatherStateDO
-import com.isel.pdm.yawa.tools.DateConverter
-import java.text.SimpleDateFormat
-import java.util.*
 
 
 class BootCompleteReceiver: BroadcastReceiver() {
@@ -29,27 +25,45 @@ class WeatherService: Service() {
     private var mServiceLooper: Looper? = null
     private var mServiceHandler: ServiceHandler? = null
     private var updatingCurrentWeather: Boolean = false
+    private var updatingForecastWeather: Boolean = false
 
-    private val callbackSet : ICallbackSet by lazy {
+    private val currentWeatherCallbackSet : ICallbackSet by lazy {
+        object : ICallbackSet {
+            override fun onError(error: VolleyError) {
+                val errorStr: String = resources.getString(R.string.error1001)
+                Log.e(YAWA.YAWA_ERROR_TAG, errorStr)
+                Log.e(YAWA.YAWA_ERROR_TAG, error.message)
+                // Notify activitys waiting for update completion
+                val intent = Intent(YAWA.REFRESH_WEATHER_DONE_ACTION)
+                intent.putExtra("errMsg", errorStr)
+                sendBroadcast(intent)
+            }
+
+            override fun onSucceed(response: Any?) {
+                // TODO: esta variavel é alterada por varias threads...
+                updatingCurrentWeather = false
+                // Notify activitys waiting for update completion
+                sendBroadcast(Intent(YAWA.REFRESH_WEATHER_DONE_ACTION))
+            }
+        }
+    }
+
+    private val forecastWeatherCallbackSet : ICallbackSet by lazy {
         object : ICallbackSet {
             override fun onError(error: VolleyError) {
                 Log.e(YAWA.YAWA_ERROR_TAG, resources.getString(R.string.error1001))
                 Log.e(YAWA.YAWA_ERROR_TAG, error.message)
-                // Notify activitys waiting for update completion
-                sendBroadcast(Intent(YAWA.REFRESH_WEATHER_DONE_ACTION))
+                // Notify activities waiting for update completion
+                val intent = Intent(YAWA.REFRESH_WEATHER_DONE_ACTION)
+                intent.putExtra("errMsg", resources.getString(R.string.error1004))
+                sendBroadcast(intent)
             }
 
             override fun onSucceed(response: Any?) {
-                val weatherState = response as WeatherStateDO
-                Log.e(YAWA.YAWA_INFO_TAG, "description: " + weatherState.description)
-                Log.e(YAWA.YAWA_INFO_TAG, "temp: " + weatherState.temp)
-                val date = DateConverter.unixSecondsToDateString(weatherState.date,
-                        TimeZone.getDefault(), SimpleDateFormat("yyyy-MM-dd, HH:mm"))
-                Log.e(YAWA.YAWA_INFO_TAG, "time: " + date)
-
+                Log.e(YAWA.YAWA_INFO_TAG, "------ forecastWeatherCallbackSet")
                 // TODO: esta variavel é alterada por varias threads... Perguntar o que se deve fazer
-                updatingCurrentWeather = false
-                // Notify activitys waiting for update completion
+                updatingForecastWeather = false
+                // Notify activities waiting for update completion
                 sendBroadcast(Intent(YAWA.REFRESH_WEATHER_DONE_ACTION))
             }
         }
@@ -59,9 +73,7 @@ class WeatherService: Service() {
     private inner class ServiceHandler(looper: Looper) : Handler(looper) {
         override fun handleMessage(msg: Message) {
             try {
-                Log.e("!!!!", "--------------------   start Request")
-                application.weatherManager.updateCurrentWeather(callbackSet)
-                Log.e("!!!!", "--------------------   stop Request")
+                application.weatherManager.updateCurrentWeather(currentWeatherCallbackSet)
             } catch (e: InterruptedException) {
                 // Restore interrupt status.
                 Thread.currentThread().interrupt()
@@ -101,13 +113,20 @@ class WeatherService: Service() {
             msg.arg1 = startId
             mServiceHandler!!.sendMessage(msg)
         }
+        else if(intent?.action == YAWA.UPDATE_FORECAST_WEATHER_ACTION && !updatingForecastWeather) {
+            updatingForecastWeather = true
 
-        /*
-        mServiceHandler?.post {
-            Log.e("!!!!", "Posted Runnable!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-            val msg = mServiceHandler?.obtainMessage()
-            Log.e("!!!!", msg?.arg2.toString())
-        }*/
+            mServiceHandler?.post {
+                val _startId = startId
+                try {
+                    application.weatherManager.updateForecastWeather(forecastWeatherCallbackSet)
+                } catch (e: InterruptedException) {
+                    // Restore interrupt status.
+                    Thread.currentThread().interrupt()
+                }
+                stopSelf(_startId)
+            }
+        }
 
         // If we get killed, after returning from here, restart
         return START_STICKY

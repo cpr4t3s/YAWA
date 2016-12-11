@@ -22,16 +22,24 @@ class YAWA : Application() {
         val YAWA_INFO_TAG = "> YAWA Info"
         // Actions
         val UPDATE_CURRENT_WEATHER_ACTION = "com.isel.pdm.yawa.UPDATE_CURRENT_WEATHER"
+        val UPDATE_FORECAST_WEATHER_ACTION = "com.isel.pdm.yawa.UPDATE_FORECAST_WEATHER"
         val REFRESH_WEATHER_DONE_ACTION = "com.isel.pdm.yawa.REFRESH_WEATHER_DONE"
+        // Used to set DB entry as current weather or forecast weather
+        val CURRENT_WEATHER_FLAG: Int = 1
+        val FORECAST_WEATHER_FLAG: Int = 0
         // Loaders
         val WEATHER_LOADER_ID = 1
+        val FORECAST_LOADER_ID = 2
     }
 
     val weatherManager by lazy { WeatherManager(this, OpenWeatherRequester(this)) }
-    // default locations when there is no settings file
+    //
     val defaultLocation: String by lazy { resources.getString(R.string.default_location) }
-    // key for locations on settings file
+    val defaultForecastDays: Int by lazy { resources.getString(R.string.default_forecast_days).toInt() }
+    //
     val settingsLocationStr: String by lazy { resources.getString(R.string.settings_location_str) }
+    val settingsForecastDaysStr: String by lazy { resources.getString(R.string.settings_forecast_days_str) }
+
     //
     var autoRefreshEnabled: Boolean = true
     //
@@ -122,8 +130,14 @@ val Application.weatherManager : WeatherManager
 val Application.defaultLocation: String
     get() = (this as YAWA).defaultLocation
 
+val Application.defaultForecastDays: Int
+    get() = (this as YAWA).defaultForecastDays
+
 val Application.settingsLocationStr: String
     get() = (this as YAWA).settingsLocationStr
+
+val Application.settingsForecastDaysStr: String
+    get() = (this as YAWA).settingsForecastDaysStr
 
 val Application.autoRefreshEnabled: Boolean
     get() = (this as YAWA).autoRefreshEnabled

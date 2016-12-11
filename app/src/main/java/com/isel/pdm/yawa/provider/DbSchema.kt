@@ -6,7 +6,7 @@ import android.provider.BaseColumns
 object DbSchema {
 
     val DB_NAME = "weather.db"
-    val DB_VERSION = 1
+    val DB_VERSION = 2
 
     val COL_ID = BaseColumns._ID
 
@@ -21,6 +21,7 @@ object DbSchema {
             COL_CITY_ID,
             COL_CURRENT,
             COL_LAST_UPDATE,
+            COL_FORECAST_DATE,
             COL_DESCRIPTION,
             COL_TEMPERATURE,
             COL_TEMPERATURE_MAX,
@@ -38,6 +39,7 @@ object DbSchema {
         val COL_CITY_ID = "cityId"
         val COL_CURRENT = "current"
         val COL_LAST_UPDATE = "lastUpdate"
+        val COL_FORECAST_DATE = "forecastDate"
         val COL_DESCRIPTION = "description"
         val COL_TEMPERATURE = "temp"
         val COL_TEMPERATURE_MAX = "temp_max"
@@ -60,6 +62,7 @@ object DbSchema {
                         COL_CITY_ID + " TEXT, " +
                         COL_CURRENT + " INTEGER, " +
                         COL_LAST_UPDATE + " TEXT, " +
+                        COL_FORECAST_DATE + " TEXT, " +
                         COL_DESCRIPTION + " TEXT, " +
                         COL_TEMPERATURE + " REAL, " +
                         COL_TEMPERATURE_MAX + " REAL, " +
