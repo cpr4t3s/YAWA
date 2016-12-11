@@ -22,6 +22,7 @@ class YAWA : Application() {
         val YAWA_INFO_TAG = "> YAWA Info"
         // Actions
         val UPDATE_CURRENT_WEATHER_ACTION = "com.isel.pdm.yawa.UPDATE_CURRENT_WEATHER"
+        val AUTO_UPDATE_CURRENT_WEATHER_ACTION = "com.isel.pdm.yawa.AUTO_UPDATE_CURRENT_WEATHER"
         val UPDATE_FORECAST_WEATHER_ACTION = "com.isel.pdm.yawa.UPDATE_FORECAST_WEATHER"
         val REFRESH_WEATHER_DONE_ACTION = "com.isel.pdm.yawa.REFRESH_WEATHER_DONE"
         // Used to set DB entry as current weather or forecast weather
@@ -56,11 +57,12 @@ class YAWA : Application() {
 
         // don't duplicate the alarm if it already exists
         val intent = Intent(applicationContext, WeatherService::class.java)
-        intent.action = YAWA.UPDATE_CURRENT_WEATHER_ACTION
-        Log.w("!!!", "////////////////////////////////////////// PendingIntent: " +
-                PendingIntent.getService(applicationContext, serviceAlarmId, intent, PendingIntent.FLAG_NO_CREATE))
+        intent.action = YAWA.AUTO_UPDATE_CURRENT_WEATHER_ACTION
+        val tmpInten = PendingIntent.getService(applicationContext, serviceAlarmId, intent, PendingIntent.FLAG_NO_CREATE)
+        Log.w("!!!", "////////////////////////////////////////// PendingIntent: " + tmpInten)
+
         if(PendingIntent.getService(applicationContext, serviceAlarmId, intent, PendingIntent.FLAG_NO_CREATE) == null) {
-            val alarmIntent = PendingIntent.getService(applicationContext, serviceAlarmId, intent, 0)
+            val alarmIntent = PendingIntent.getService(applicationContext, serviceAlarmId, intent, PendingIntent.FLAG_CANCEL_CURRENT)
             val alarmManager = applicationContext.getSystemService(Context.ALARM_SERVICE) as AlarmManager
             alarmManager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME, SystemClock.elapsedRealtime(),
                     refreshRate!! * 1000 * 60, alarmIntent)
@@ -92,10 +94,12 @@ class YAWA : Application() {
             state = PackageManager.COMPONENT_ENABLED_STATE_ENABLED
         } else {
             val intent = Intent(applicationContext, WeatherService::class.java)
-            intent.action = YAWA.UPDATE_CURRENT_WEATHER_ACTION
-            val alarmIntent = PendingIntent.getService(applicationContext, serviceAlarmId, intent, PendingIntent.FLAG_UPDATE_CURRENT)
-            val alarmManager = applicationContext.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-            alarmManager.cancel(alarmIntent)
+            intent.action = YAWA.AUTO_UPDATE_CURRENT_WEATHER_ACTION
+            val alarmIntent = PendingIntent.getService(applicationContext, serviceAlarmId, intent, PendingIntent.FLAG_NO_CREATE)
+            if(alarmIntent != null) {
+                val alarmManager = applicationContext.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+                alarmManager.cancel(alarmIntent)
+            }
             state = PackageManager.COMPONENT_ENABLED_STATE_DISABLED
         }
 

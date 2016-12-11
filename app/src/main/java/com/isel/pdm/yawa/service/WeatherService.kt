@@ -4,7 +4,9 @@ import android.app.Service
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.net.ConnectivityManager
 import android.os.*
+import android.preference.PreferenceManager
 import android.util.Log
 import com.android.volley.VolleyError
 import com.isel.pdm.yawa.*
@@ -26,6 +28,8 @@ class WeatherService: Service() {
     private var mServiceHandler: ServiceHandler? = null
     private var updatingCurrentWeather: Boolean = false
     private var updatingForecastWeather: Boolean = false
+    private val onlyWifiSettingStr by lazy {resources.getString(R.string.settings_only_wifi_str)}
+    private val defaultWifiSettingsValue by lazy {resources.getBoolean(R.bool.default_only_wifi_setting)}
 
     private val currentWeatherCallbackSet : ICallbackSet by lazy {
         object : ICallbackSet {
@@ -69,6 +73,22 @@ class WeatherService: Service() {
         }
     }
 
+    private fun canProceed(): Boolean {
+        val connManager = applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val networkInfo = connManager.activeNetworkInfo
+        // no active network?
+        if (networkInfo == null) return false
+
+        val isConnected = networkInfo.isConnectedOrConnecting
+        if(!isConnected) return false
+        // update only when connected over wifi?
+        val onlyWifi = PreferenceManager.getDefaultSharedPreferences(applicationContext)
+                .getBoolean(onlyWifiSettingStr, defaultWifiSettingsValue)
+        if(onlyWifi && networkInfo.type != ConnectivityManager.TYPE_WIFI) return false
+
+        return true
+    }
+
     // Handler that receives messages from the thread
     private inner class ServiceHandler(looper: Looper) : Handler(looper) {
         override fun handleMessage(msg: Message) {
@@ -105,15 +125,32 @@ class WeatherService: Service() {
         Log.i(YAWA.YAWA_INFO_TAG, "onStartCommand")
         Log.i(YAWA.YAWA_INFO_TAG, "onStartCommand intent: " + intent)
         Log.i(YAWA.YAWA_INFO_TAG, "onStartCommand intent: " + intent?.action)
-        if(intent?.action == YAWA.UPDATE_CURRENT_WEATHER_ACTION && !updatingCurrentWeather) {
+
+        when(intent?.action) {
+            YAWA.AUTO_UPDATE_CURRENT_WEATHER_ACTION -> {
+                if (canProceed()) {
+                    updateCurrentWeather(startId)
+                }
+            }
+            YAWA.UPDATE_CURRENT_WEATHER_ACTION -> { updateCurrentWeather(startId) }
+            YAWA.UPDATE_FORECAST_WEATHER_ACTION -> { updateForecastWeather(startId) }
+        }
+
+        // If we get killed, after returning from here, restart
+        return START_STICKY
+    }
+
+    private fun updateCurrentWeather(startId: Int) {
+        if (!updatingCurrentWeather) {
             updatingCurrentWeather = true
-            // For each start request, send a message to start a job and deliver the
-            // start ID so we know which request we're stopping when we finish the job
             val msg = mServiceHandler!!.obtainMessage()
             msg.arg1 = startId
             mServiceHandler!!.sendMessage(msg)
         }
-        else if(intent?.action == YAWA.UPDATE_FORECAST_WEATHER_ACTION && !updatingForecastWeather) {
+    }
+
+    private fun updateForecastWeather(startId: Int) {
+        if(!updatingForecastWeather) {
             updatingForecastWeather = true
 
             mServiceHandler?.post {
@@ -127,9 +164,6 @@ class WeatherService: Service() {
                 stopSelf(_startId)
             }
         }
-
-        // If we get killed, after returning from here, restart
-        return START_STICKY
     }
 
     override fun onBind(intent: Intent): IBinder? {
