@@ -53,4 +53,7 @@
     <string name="settings_only_wifi_title">Tipo de Ligação</string>
     <string name="settings_min_battery_title">Gestão de Bateria</string>
     <string name="settings_min_battery_dialog_title">Desabilita updates automáticos quando o nível da bateria atinge:</string>
+    <string name="actionbar_label_actions">Acções</string>
+    <string name="actionbar_item_add">Adicionar nova Localização</string>
+    <string name="actionbar_item_edit">Editar Localizações</string>
 </resources>
