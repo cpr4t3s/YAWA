@@ -28,7 +28,7 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor>,
     private val txtTitleCity by lazy { findViewById(R.id.txtTitleCity) as TextView }
     private val weatherFragment by lazy { fragmentManager.findFragmentById(R.id.weather_detail)
             as WeatherDetailsFragment }
-    private val navigationView by lazy { findViewById(R.id.navigation_main_view) as NavigationView }
+    private val navigationView by lazy { findViewById(R.id.navigation_main_view) as NavigationView? }
     private val drawerLayout by lazy { findViewById(R.id.drawer_layout) as DrawerLayout }
     private val swR by lazy { findViewById(R.id.current_weather_swiperefresh) as SwipeRefreshLayout }
     //
@@ -61,7 +61,7 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor>,
         setContentView(R.layout.activity_weather__main_menu_)
 
         // setting up selected item listener
-        navigationView.setNavigationItemSelectedListener(this)
+        navigationView?.setNavigationItemSelectedListener(this)
 
         swR.setOnRefreshListener( {updateCurrentWeather()} )
         // Register a listener for 'REFRESH_WEATHER_DONE_ACTION' broadcasts
@@ -160,7 +160,9 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor>,
         // update the weather. The weather may change when the user select a different city
         loaderManager.restartLoader(YAWA.WEATHER_LOADER_ID, null, this)
 
-        updateActionbarItems()
+        // it can be null in landscape view
+        if(navigationView != null)
+            updateActionbarItems()
     }
 
     override fun onLoaderReset(loader: Loader<Cursor>?) {
@@ -212,7 +214,7 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor>,
     }
 
     private fun updateActionbarItems() {
-        val menu = navigationView.menu
+        val menu = navigationView?.menu
         val selectedCity = PreferenceManager.getDefaultSharedPreferences(this)
                 .getString(application.settingsLocationStr, application.defaultLocation)
 
@@ -220,13 +222,13 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor>,
         // TODO: meter o zero com constante nas resourses
         val citiesCounter = sharedPref.getInt("citiesCounter", 0)
 
-        val subMenu = menu.addSubMenu(R.string.actionbar_label_cities)
+        val subMenu = menu?.addSubMenu(R.string.actionbar_label_cities)
 
         for (i in 0 until citiesCounter) {
             val city = sharedPref.getString("city" + i, "--")
-            val menuItem = subMenu.add(Menu.NONE, i, Menu.NONE, city)
-            menuItem.isCheckable = true
-            if(city == selectedCity) navigationView.setCheckedItem(i)
+            val menuItem = subMenu?.add(Menu.NONE, i, Menu.NONE, city)
+            menuItem?.isCheckable = true
+            if(city == selectedCity) navigationView?.setCheckedItem(i)
         }
 
 //        for (i in 0 until navigationView.childCount) {

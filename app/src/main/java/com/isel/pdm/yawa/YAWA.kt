@@ -61,8 +61,6 @@ class YAWA : Application() {
         // don't duplicate the alarm if it already exists
         val intent = Intent(applicationContext, WeatherService::class.java)
         intent.action = YAWA.AUTO_UPDATE_CURRENT_WEATHER_ACTION
-        val tmpInten = PendingIntent.getService(applicationContext, serviceAlarmId, intent, PendingIntent.FLAG_NO_CREATE)
-        Log.w("!!!", "////////////////////////////////////////// PendingIntent: " + tmpInten)
 
         if(PendingIntent.getService(applicationContext, serviceAlarmId, intent, PendingIntent.FLAG_NO_CREATE) == null) {
             val alarmIntent = PendingIntent.getService(applicationContext, serviceAlarmId, intent, PendingIntent.FLAG_CANCEL_CURRENT)
@@ -102,6 +100,7 @@ class YAWA : Application() {
             if(alarmIntent != null) {
                 val alarmManager = applicationContext.getSystemService(Context.ALARM_SERVICE) as AlarmManager
                 alarmManager.cancel(alarmIntent)
+                alarmIntent.cancel()
             }
             state = PackageManager.COMPONENT_ENABLED_STATE_DISABLED
         }
