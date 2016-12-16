@@ -21,7 +21,7 @@ import com.isel.pdm.yawa.provider.WeatherContract
 import com.isel.pdm.yawa.service.WeatherService
 import java.util.*
 
-var favouriteCities : ArrayList<String> = ArrayList()
+
 class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor>, NavigationView.OnNavigationItemSelectedListener {
     private val BACK_PRESS_INTERVAL: Long = 2000 // 2 seconds
 
@@ -233,12 +233,10 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor>,
         for (i in 0 until citiesCounter) {
             subMenu?.removeItem(i)
         }
-        favouriteCities = ArrayList<String>()
         for (i in 0 until citiesCounter) {
             val city = sharedPref.getString("city" + i, "--")
             val menuItem = subMenu?.add(Menu.NONE, i, Menu.NONE, city)
             menuItem?.isCheckable = true
-            favouriteCities.add(city)
             if(city == selectedCity) navigationView?.setCheckedItem(i)
         }
 
