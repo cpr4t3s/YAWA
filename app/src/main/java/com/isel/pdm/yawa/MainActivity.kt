@@ -13,17 +13,19 @@ import android.support.v4.widget.SwipeRefreshLayout
 import android.util.Log
 import android.view.*
 import android.widget.*
+import com.isel.pdm.yawa.EditCitiesActivity
 
 import com.isel.pdm.yawa.fragments.WeatherDetailsFragment
 import com.isel.pdm.yawa.openweather_tools.OpenWeatherParser
 import com.isel.pdm.yawa.provider.WeatherContract
 import com.isel.pdm.yawa.service.WeatherService
+import java.util.*
 
-
-
+var favouriteCities : ArrayList<String> = ArrayList()
 class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor>, NavigationView.OnNavigationItemSelectedListener {
     private val BACK_PRESS_INTERVAL: Long = 2000 // 2 seconds
 
+    private var subMenu : SubMenu? =null
     private var lastBackTime: Long = 0
     private val txtTitleCity by lazy { findViewById(R.id.txtTitleCity) as TextView }
     private val weatherFragment by lazy { fragmentManager.findFragmentById(R.id.weather_detail)
@@ -70,6 +72,10 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor>,
 
         // initiate our loader
         loaderManager.initLoader(YAWA.WEATHER_LOADER_ID, null, this)
+
+        val menu = navigationView?.menu
+
+        subMenu= menu?.addSubMenu(R.string.actionbar_label_cities)
     }
 
     override fun onStop() {
@@ -120,7 +126,10 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor>,
                 intent.action = YAWA.ADD_NEW_LOCATION_ACTION
                 startActivity(intent)
             }
-            R.id.navigation_edit -> {println("edittttttttt")}
+            R.id.navigation_edit -> {
+                val intent = Intent(this, EditCitiesActivity::class.java)
+                startActivity(intent)
+            }
             else -> {
                 selectCity(menuItem.title.toString())
                 setCityOnTitle()
@@ -214,32 +223,25 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor>,
     }
 
     private fun updateActionbarItems() {
-        val menu = navigationView?.menu
-        val selectedCity = PreferenceManager.getDefaultSharedPreferences(this)
-                .getString(application.settingsLocationStr, application.defaultLocation)
-
         val sharedPref = PreferenceManager.getDefaultSharedPreferences(this)
         // TODO: meter o zero com constante nas resourses
         val citiesCounter = sharedPref.getInt("citiesCounter", 0)
 
-        val subMenu = menu?.addSubMenu(R.string.actionbar_label_cities)
-
+        val selectedCity = PreferenceManager.getDefaultSharedPreferences(this)
+                .getString(application.settingsLocationStr, application.defaultLocation)
+        // TODO removes the items from the menu but it should be better
+        for (i in 0 until citiesCounter) {
+            subMenu?.removeItem(i)
+        }
+        favouriteCities = ArrayList<String>()
         for (i in 0 until citiesCounter) {
             val city = sharedPref.getString("city" + i, "--")
             val menuItem = subMenu?.add(Menu.NONE, i, Menu.NONE, city)
             menuItem?.isCheckable = true
+            favouriteCities.add(city)
             if(city == selectedCity) navigationView?.setCheckedItem(i)
         }
 
-//        for (i in 0 until navigationView.childCount) {
-//            val child = navigationView.getChildAt(i)
-//            if (child != null && child is ListView) {
-//                val menuView = child
-//                val adapter = menuView.adapter as HeaderViewListAdapter
-//                val wrapped = adapter.wrappedAdapter as BaseAdapter
-//                wrapped.notifyDataSetChanged()
-//            }
-//        }
     }
 
     /**
