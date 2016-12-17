@@ -2,6 +2,7 @@ package com.isel.pdm.yawa
 
 import android.app.AlarmManager
 import android.app.Application
+import android.app.Notification
 import android.app.PendingIntent
 import android.content.ComponentName
 import android.content.Context
@@ -14,6 +15,7 @@ import android.util.Log
 import com.isel.pdm.yawa.service.WeatherService
 import com.isel.pdm.yawa.openweather_tools.OpenWeatherRequester
 import com.isel.pdm.yawa.service.BootCompleteReceiver
+import java.util.*
 
 class YAWA : Application() {
     companion object {
@@ -34,6 +36,8 @@ class YAWA : Application() {
         // Loaders
         val WEATHER_LOADER_ID = 1
         val FORECAST_LOADER_ID = 2
+        //
+        val NOTIFICATIONS_INTENT_ID = 0
     }
 
     val weatherManager by lazy { WeatherManager(this, OpenWeatherRequester(this)) }
@@ -122,13 +126,81 @@ class YAWA : Application() {
         prefs.registerOnSharedPreferenceChangeListener { sharedPreferences, key ->
             run {
                 val settingsAutoRefreshStr = this.resources?.getString(R.string.settings_auto_refresh_str)
+                val settingsNotificationEnabledStr = this.resources?.getString(R.string.settings_notifications_enabled_str)
+                val settingsNotificationTimeStr = this.resources?.getString(R.string.settings_notification_time_str)
                 // aqui podemos ignorar os default values porque se foi alterado, já existe
-                if(key.equals(settingsAutoRefreshStr))
+                if(key.equals(settingsAutoRefreshStr)) {
                     setAutoRefreshAfterPrefChange(sharedPreferences.getBoolean(key, true))
+                }
+                else if (key == settingsNotificationEnabledStr){
+                    val settingsNotificationTime = sharedPreferences.getString(settingsNotificationTimeStr,"12:0")
+                    if(sharedPreferences.getBoolean(key,false)){
+                        scheduleNotification(getNotification(),settingsNotificationTime)
+                    }
+                    else{
+                        disableNotifications()
+                    }
+
+                }
             }
         }
     }
+
+
+    private fun  scheduleNotification(notification: Notification, time: String) {
+        val splitedTime = time.split(":")
+        val hour = splitedTime[0].toInt()
+        val minutes = splitedTime[1].toInt()
+
+        val calendar = Calendar.getInstance()
+        calendar.timeInMillis = System.currentTimeMillis()
+        calendar.set(Calendar.HOUR_OF_DAY, hour)
+        calendar.set(Calendar.MINUTE, minutes)
+
+        var notificationIntent : Intent = Intent(this, NotificationGenerator::class.java)
+        notificationIntent.putExtra("notification-id",1)
+        notificationIntent.putExtra("notification",notification)
+
+        var pendingIntent : PendingIntent = PendingIntent
+                .getBroadcast( this, NOTIFICATIONS_INTENT_ID, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+
+        var alarmManager : AlarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        alarmManager
+                .setInexactRepeating(AlarmManager.RTC_WAKEUP, calendar.timeInMillis, AlarmManager.INTERVAL_DAY, pendingIntent)
+
+    }
+
+    private fun  getNotification(): Notification {
+        var builder : Notification.Builder = Notification.Builder(this)
+        builder.setContentTitle("Claudio nao pescamos nada disto")
+        builder.setContentText("depois aqui temos de meter cenas e tal")
+        builder.setSmallIcon(R.drawable.notification_template_icon_bg)
+
+        val resultIntent =  Intent(this, MainActivity::class.java)
+
+        val  resultPendingIntent =
+                PendingIntent.getActivity(
+                        this,
+                        0,
+                        resultIntent,
+                        PendingIntent.FLAG_UPDATE_CURRENT
+                )
+
+        builder.setContentIntent(resultPendingIntent)
+        return builder.build()
+    }
+
+    private fun disableNotifications(){
+        var notificationIntent : Intent = Intent(this, NotificationGenerator::class.java)
+
+        var pendingIntent : PendingIntent = PendingIntent
+                .getBroadcast( this, NOTIFICATIONS_INTENT_ID, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+
+        var alarmManager : AlarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        alarmManager.cancel(pendingIntent)
+    }
 }
+
 
 val Application.weatherManager : WeatherManager
     get() = (this as YAWA).weatherManager

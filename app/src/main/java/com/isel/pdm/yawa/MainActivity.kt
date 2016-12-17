@@ -152,7 +152,6 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor>,
         when(item.itemId) {
             // change city
             R.id.settings_addCity -> {
-                scheduleNotification(getNotification()!!, 10000)
                 val intent = Intent(this, CitiesActivity::class.java)
                 intent.action = YAWA.SEARCH_LOCATION_ACTION
                 startActivity(intent)
@@ -169,37 +168,6 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor>,
         return true
     }
 
-    private fun  scheduleNotification(notification: Notification, delay: Int) {
-        var notificationIntent : Intent = Intent(this, NotificationGenerator::class.java)
-        notificationIntent.putExtra("notification-id",1)
-        notificationIntent.putExtra("notification",notification)
-        var pendingIntent : PendingIntent = PendingIntent
-                .getBroadcast( this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT)
-        var futureInMillis : Long = SystemClock.elapsedRealtime()+delay
-        var alarmManager : AlarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, futureInMillis, pendingIntent)
-
-    }
-
-    private fun  getNotification(): Notification? {
-        var builder : Notification.Builder = Notification.Builder(this)
-        builder.setContentTitle("Claudio nao pescamos nada disto")
-        builder.setContentText("depois aqui temos de meter cenas e tal")
-        builder.setSmallIcon(R.drawable.notification_template_icon_bg)
-
-        val resultIntent =  Intent(this, MainActivity::class.java)
-
-        val  resultPendingIntent =
-        PendingIntent.getActivity(
-                this,
-                0,
-                resultIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT
-        )
-
-        builder.setContentIntent(resultPendingIntent)
-        return builder.build()
-    }
 
     override fun onResume() {
         super.onResume()
@@ -290,7 +258,6 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor>,
         val settingsLocationStr = resources.getString(R.string.settings_location_str)
         val sharedPref = PreferenceManager.getDefaultSharedPreferences(this)
         val editor = sharedPref.edit()
-
         editor.putString(settingsLocationStr, cityDescriptionId)
         editor.apply()
     }
