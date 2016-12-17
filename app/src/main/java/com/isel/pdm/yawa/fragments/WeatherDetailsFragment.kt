@@ -12,6 +12,7 @@ import android.widget.TextView
 import com.isel.pdm.yawa.*
 import com.isel.pdm.yawa.DataContainers.WeatherStateDO
 import com.isel.pdm.yawa.tools.DateConverter
+import com.isel.pdm.yawa.tools.MetricsResolver
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -56,6 +57,10 @@ class WeatherDetailsFragment: Fragment() {
      * Refresh the UI with weather state
      */
     fun updateUI(weatherState: WeatherStateDO) {
+        val unit = PreferenceManager.getDefaultSharedPreferences(activity.applicationContext).
+                getString(activity.application.settingsMetricStr, activity.application.defaultMetric)
+        val unitSymbol = MetricsResolver.getMetricSymbol(unit)
+
         // Main state
         var tmpTextView = activity.findViewById(R.id.weatherMain) as TextView
         tmpTextView.text = weatherState.mainState
@@ -68,7 +73,7 @@ class WeatherDetailsFragment: Fragment() {
         tmpTextView.text = weatherState.humidity.toString()
         // we dont have Current Temp when in forecast
         tmpTextView = activity.findViewById(R.id.weatherTempCurrent) as TextView
-        tmpTextView.text = weatherState.temp.toString()
+        tmpTextView.text = "${weatherState.temp} $unitSymbol"
         var tmpLabel = activity.findViewById(R.id.current_temp_label) as TextView
         if(activity.componentName.className.equals(ForecastActivity::class.java.name)) {
             tmpTextView.visibility = View.GONE

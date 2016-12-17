@@ -192,6 +192,24 @@ class WeatherManager constructor(context: Context, val requester: IRequestParser
         this.requester.addRequest(jsObjRequest)
     }
 
+    fun getCurrentWeather(): WeatherStateDO {
+        val sharedPref = PreferenceManager.getDefaultSharedPreferences(context.applicationContext)
+        val city = sharedPref.getString(settingsLocationStr, defaultLocation)
+        val selectionClause: String =
+                "${WeatherContract.Weather.CITY_ID} = ? AND  ${WeatherContract.Weather.CURRENT} = ?"
+        val selectionArgs = arrayOf(city, YAWA.CURRENT_WEATHER_FLAG.toString())
+
+        val resultCursor = context.contentResolver.query(
+                WeatherContract.Weather.CONTENT_URI,
+                WeatherContract.Weather.SELECT_ALL,
+                selectionClause,
+                selectionArgs,
+                null)
+
+
+        return OpenWeatherParser.parseWeatherState(resultCursor)
+    }
+
     fun getWeatherIcon(iconID: String, callbackSet : ICallbackSet) {
         val imageLoader = this.requester.getImgLoader()
         val url = URLTranslator.getWeatherIconURL(this.context, iconID)

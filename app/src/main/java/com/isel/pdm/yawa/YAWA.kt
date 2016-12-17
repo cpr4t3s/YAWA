@@ -11,10 +11,11 @@ import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.SystemClock
 import android.preference.PreferenceManager
-import android.util.Log
+import com.isel.pdm.yawa.DataContainers.WeatherStateDO
 import com.isel.pdm.yawa.service.WeatherService
 import com.isel.pdm.yawa.openweather_tools.OpenWeatherRequester
 import com.isel.pdm.yawa.service.BootCompleteReceiver
+import com.isel.pdm.yawa.tools.MetricsResolver
 import java.util.*
 
 class YAWA : Application() {
@@ -38,7 +39,11 @@ class YAWA : Application() {
         val FORECAST_LOADER_ID = 2
         //
         val NOTIFICATIONS_INTENT_ID = 0
+        //
+        val DEFAULT_ALARM_TIME = "12:0"
     }
+
+    class GenericTime(val hour: Int, val minutes: Int) {}
 
     val weatherManager by lazy { WeatherManager(this, OpenWeatherRequester(this)) }
     //
@@ -47,6 +52,12 @@ class YAWA : Application() {
     //
     val settingsLocationStr: String by lazy { resources.getString(R.string.settings_location_str) }
     val settingsForecastDaysStr: String by lazy { resources.getString(R.string.settings_forecast_days_str) }
+    //
+    val settingsAutoRefreshStr: String by lazy { resources.getString(R.string.settings_auto_refresh_str) }
+    val settingsNotificationEnabledStr: String by lazy { resources.getString(R.string.settings_notifications_enabled_str) }
+    val settingsNotificationTimeStr: String by lazy { resources.getString(R.string.settings_notification_time_str) }
+    val defaultMetric: String by lazy { resources.getString(R.string.default_units) }
+    val settingsMetricStr: String by lazy { resources.getString(R.string.settings_units_str) }
 
     //
     var autoRefreshEnabled: Boolean = true
@@ -125,56 +136,85 @@ class YAWA : Application() {
         val prefs = PreferenceManager.getDefaultSharedPreferences(this)
         prefs.registerOnSharedPreferenceChangeListener { sharedPreferences, key ->
             run {
-                val settingsAutoRefreshStr = this.resources?.getString(R.string.settings_auto_refresh_str)
-                val settingsNotificationEnabledStr = this.resources?.getString(R.string.settings_notifications_enabled_str)
-                val settingsNotificationTimeStr = this.resources?.getString(R.string.settings_notification_time_str)
                 // aqui podemos ignorar os default values porque se foi alterado, já existe
-                if(key.equals(settingsAutoRefreshStr)) {
+                if(key == settingsAutoRefreshStr) {
                     setAutoRefreshAfterPrefChange(sharedPreferences.getBoolean(key, true))
                 }
-                else if (key == settingsNotificationEnabledStr){
-                    val settingsNotificationTime = sharedPreferences.getString(settingsNotificationTimeStr,"12:0")
-                    if(sharedPreferences.getBoolean(key,false)){
-                        scheduleNotification(getNotification(),settingsNotificationTime)
+                else if (key == settingsNotificationEnabledStr) {
+                    val settingsNotificationTime = sharedPreferences.getString(settingsNotificationTimeStr, DEFAULT_ALARM_TIME)
+                    if(sharedPreferences.getBoolean(key, false)){
+                        scheduleNotification(getNotification(), convertTimeFromString(settingsNotificationTime))
                     }
                     else{
                         disableNotifications()
                     }
 
                 }
+                else if (key == settingsNotificationTimeStr) {
+                    val settingsNotificationTime = sharedPreferences.getString(settingsNotificationTimeStr, DEFAULT_ALARM_TIME)
+                    updateNotification(getNotification(), convertTimeFromString(settingsNotificationTime))
+                }
             }
         }
     }
 
-
-    private fun  scheduleNotification(notification: Notification, time: String) {
+    private fun convertTimeFromString(time: String): GenericTime {
         val splitedTime = time.split(":")
         val hour = splitedTime[0].toInt()
         val minutes = splitedTime[1].toInt()
 
+        return GenericTime(hour, minutes)
+    }
+
+    private fun updateNotification(notification: Notification, time: GenericTime) {
         val calendar = Calendar.getInstance()
         calendar.timeInMillis = System.currentTimeMillis()
-        calendar.set(Calendar.HOUR_OF_DAY, hour)
-        calendar.set(Calendar.MINUTE, minutes)
+        calendar.set(Calendar.HOUR_OF_DAY, time.hour)
+        calendar.set(Calendar.MINUTE, time.minutes)
 
-        var notificationIntent : Intent = Intent(this, NotificationGenerator::class.java)
-        notificationIntent.putExtra("notification-id",1)
-        notificationIntent.putExtra("notification",notification)
+        val notificationIntent : Intent = Intent(this, NotificationGenerator::class.java)
+        notificationIntent.putExtra("notification-id", 1)
+        notificationIntent.putExtra("notification", notification)
+        val pendingIntent : PendingIntent? = PendingIntent.getBroadcast(
+                this, NOTIFICATIONS_INTENT_ID, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+        if(pendingIntent != null) {
+            val alarmManager: AlarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            alarmManager.setRepeating(
+                    AlarmManager.RTC_WAKEUP, calendar.timeInMillis, AlarmManager.INTERVAL_DAY, pendingIntent)
+        }
+    }
 
-        var pendingIntent : PendingIntent = PendingIntent
-                .getBroadcast( this, NOTIFICATIONS_INTENT_ID, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+    private fun  scheduleNotification(notification: Notification, time: GenericTime) {
+        val calendar = Calendar.getInstance()
+        calendar.timeInMillis = System.currentTimeMillis()
+        calendar.set(Calendar.HOUR_OF_DAY, time.hour)
+        calendar.set(Calendar.MINUTE, time.minutes)
 
-        var alarmManager : AlarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        alarmManager
-                .setInexactRepeating(AlarmManager.RTC_WAKEUP, calendar.timeInMillis, AlarmManager.INTERVAL_DAY, pendingIntent)
+        val notificationIntent : Intent = Intent(this, NotificationGenerator::class.java)
+        notificationIntent.putExtra("notification-id", 1)
+        notificationIntent.putExtra("notification", notification)
 
+        val pendingIntent : PendingIntent? = PendingIntent.getBroadcast(
+                this, NOTIFICATIONS_INTENT_ID, notificationIntent, PendingIntent.FLAG_CANCEL_CURRENT)
+        if(pendingIntent != null) {
+            val alarmManager: AlarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            alarmManager.setRepeating(
+                    AlarmManager.RTC_WAKEUP, calendar.timeInMillis, AlarmManager.INTERVAL_DAY, pendingIntent)
+        }
     }
 
     private fun  getNotification(): Notification {
-        var builder : Notification.Builder = Notification.Builder(this)
-        builder.setContentTitle("Claudio nao pescamos nada disto")
-        builder.setContentText("depois aqui temos de meter cenas e tal")
-        builder.setSmallIcon(R.drawable.notification_template_icon_bg)
+        val builder : Notification.Builder = Notification.Builder(this)
+        val currentWeather: WeatherStateDO = weatherManager.getCurrentWeather()
+        val city = PreferenceManager.getDefaultSharedPreferences(applicationContext).
+                getString(settingsLocationStr, defaultLocation)
+        val unit = PreferenceManager.getDefaultSharedPreferences(applicationContext).
+                getString(settingsMetricStr, defaultMetric)
+
+        builder.setContentTitle(city)
+        builder.setContentText("${currentWeather.description}  -  ${currentWeather.temp} ${MetricsResolver.getMetricSymbol(unit)}")
+        builder.setSmallIcon(R.drawable.notification_icon)
+        builder.setAutoCancel(true)
 
         val resultIntent =  Intent(this, MainActivity::class.java)
 
@@ -191,13 +231,15 @@ class YAWA : Application() {
     }
 
     private fun disableNotifications(){
-        var notificationIntent : Intent = Intent(this, NotificationGenerator::class.java)
+        val notificationIntent : Intent = Intent(this, NotificationGenerator::class.java)
 
-        var pendingIntent : PendingIntent = PendingIntent
-                .getBroadcast( this, NOTIFICATIONS_INTENT_ID, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT)
-
-        var alarmManager : AlarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        alarmManager.cancel(pendingIntent)
+        val pendingIntent : PendingIntent? =
+                PendingIntent.getBroadcast( this, NOTIFICATIONS_INTENT_ID, notificationIntent, PendingIntent.FLAG_NO_CREATE)
+        if(pendingIntent != null) {
+            val alarmManager: AlarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            alarmManager.cancel(pendingIntent)
+            pendingIntent.cancel()
+        }
     }
 }
 
@@ -211,11 +253,14 @@ val Application.defaultLocation: String
 val Application.defaultForecastDays: Int
     get() = (this as YAWA).defaultForecastDays
 
+val Application.defaultMetric: String
+    get() = (this as YAWA).defaultMetric
+
 val Application.settingsLocationStr: String
     get() = (this as YAWA).settingsLocationStr
 
 val Application.settingsForecastDaysStr: String
     get() = (this as YAWA).settingsForecastDaysStr
 
-val Application.autoRefreshEnabled: Boolean
-    get() = (this as YAWA).autoRefreshEnabled
+val Application.settingsMetricStr: String
+    get() = (this as YAWA).settingsMetricStr
