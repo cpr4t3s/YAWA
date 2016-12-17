@@ -131,13 +131,16 @@ class WeatherService: Service() {
                 if (canProceed()) {
                     updateCurrentWeather(startId)
                 }
+                else {
+                    return Service.START_NOT_STICKY
+                }
             }
             YAWA.UPDATE_CURRENT_WEATHER_ACTION -> { updateCurrentWeather(startId) }
             YAWA.UPDATE_FORECAST_WEATHER_ACTION -> { updateForecastWeather(startId) }
         }
 
-        // If we get killed, after returning from here, restart
-        return START_STICKY
+        // If we get killed, after returning from here, restart with the same intent
+        return START_REDELIVER_INTENT
     }
 
     private fun updateCurrentWeather(startId: Int) {

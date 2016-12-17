@@ -6,4 +6,9 @@
         <attr name="number_picker_max_val" format="integer"/>
     </declare-styleable>
 
+    <declare-styleable name="TimePickerPreference">
+        <attr name="time_picker_hour" format="integer"/>
+        <attr name="time_picker_minutes" format="integer"/>
+    </declare-styleable>
+
 </resources>

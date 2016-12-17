@@ -24,6 +24,12 @@
     <string name="settings_refresh_rate_title">Refresh Rate</string>
     <string name="settings_only_wifi_title">Connection Type</string>
     <string name="settings_only_wifi_summary">Only updates weather automatically when Wifi is On</string>
+    <string name="settings_notifications_enabled_title">Enable Notifications</string>
+    <string name="settings_notifications_enabled_summary">Enable Notifications to your selected city</string>
+    <string name="settings_notification_time_title">Notification Time</string>
+    <string name="settings_notification_time_summary">Choose a time to your Notification</string>
+    <string name="settings_notifications_separator">Notifications</string>
+    <string name="settings_battery_separator">Battery Management</string>
     <string name="kelvin">Kelvin</string>
     <string name="celsius">Celsius</string>
     <string name="fahrenheit">Fahrenheit</string>

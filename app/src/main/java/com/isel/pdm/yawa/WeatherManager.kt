@@ -75,7 +75,7 @@ class WeatherManager constructor(context: Context, val requester: IRequestParser
     }
 
     private fun saveCurrentWeatherIcon(image: Bitmap) {
-        // TODO: guardar a imagem em BD diferente?
+        // TODO
     }
 
     private fun saveCurrentWeather(weather: WeatherStateDO) {
@@ -170,18 +170,17 @@ class WeatherManager constructor(context: Context, val requester: IRequestParser
             // Get the icon
             // TODO: Possivelmente tem de se passar as imagens para um BD independente para podermos fazer cache
             // TODO: corrigir depois de se saber como serão as caches
-//            this@WeatherManager.getWeatherIcon(weatherState.weatherIconID,
-//                    object: ICallbackSet {
-//                        override fun onError(error: VolleyError) {
-//                            callbackSet?.onError(error)
-//                        }
-//                        override fun onSucceed(response: Any?) {
-//                            if(response != null)
-//                                saveCurrentWeatherIcon(response as Bitmap)
-//                            callbackSet?.onSucceed(weatherState)
-//                        }
-//
-//                    })
+            this@WeatherManager.getWeatherIcon(weatherState.weatherIconID,
+                    object: ICallbackSet {
+                        override fun onError(error: VolleyError) {
+                            Log.e(YAWA.YAWA_ERROR_TAG, error.message)
+                        }
+                        override fun onSucceed(response: Any?) {
+                            if(response != null)
+                                saveCurrentWeatherIcon(response as Bitmap)
+                        }
+
+                    })
         }, Response.ErrorListener { error ->
             Log.e(YAWA.YAWA_ERROR_TAG, "Error on 'updateCurrentWeather()'.\n" + error.message)
             callbackSet?.onError(error)
@@ -193,7 +192,7 @@ class WeatherManager constructor(context: Context, val requester: IRequestParser
         this.requester.addRequest(jsObjRequest)
     }
 
-    private fun getWeatherIcon(iconID: String, callbackSet : ICallbackSet) {
+    fun getWeatherIcon(iconID: String, callbackSet : ICallbackSet) {
         val imageLoader = this.requester.getImgLoader()
         val url = URLTranslator.getWeatherIconURL(this.context, iconID)
         imageLoader.get(

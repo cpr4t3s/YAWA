@@ -3,6 +3,7 @@ package com.isel.pdm.yawa
 import android.app.LoaderManager
 import android.content.*
 import android.database.Cursor
+import android.net.Uri
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.preference.PreferenceManager
@@ -16,6 +17,7 @@ import android.widget.*
 
 import com.isel.pdm.yawa.fragments.WeatherDetailsFragment
 import com.isel.pdm.yawa.openweather_tools.OpenWeatherParser
+import com.isel.pdm.yawa.provider.IconItem
 import com.isel.pdm.yawa.provider.WeatherContract
 import com.isel.pdm.yawa.service.WeatherService
 
@@ -70,6 +72,12 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor>,
 
         // initiate our loader
         loaderManager.initLoader(YAWA.WEATHER_LOADER_ID, null, this)
+
+
+//        val cr = contentResolver
+//        val outputStream = cr.openOutputStream(Uri.withAppendedPath(IconItem.CONTENT_URI, "10"))
+//        outputStream.write("bolassss string de teste".toByteArray())
+//        outputStream.close()
     }
 
     override fun onStop() {
@@ -228,7 +236,8 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor>,
             val city = sharedPref.getString("city" + i, "--")
             val menuItem = subMenu?.add(Menu.NONE, i, Menu.NONE, city)
             menuItem?.isCheckable = true
-            if(city == selectedCity) navigationView?.setCheckedItem(i)
+            if(city == selectedCity)
+                navigationView?.setCheckedItem(i)
         }
 
 //        for (i in 0 until navigationView.childCount) {

@@ -7,4 +7,6 @@
     <string name="settings_only_wifi_str">onlyWifi</string>
     <string name="settings_forecast_days_str">forecastdays</string>
     <string name="settings_battery_min_str">minBattery</string>
+    <string name="settings_notifications_enabled_str">notificationsEnabled</string>
+    <string name="settings_notification_time_str">notificationTime</string>
 </resources>

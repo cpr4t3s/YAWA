@@ -20,7 +20,7 @@ class OpenWeatherRequester constructor(context: Context) : IRequestParser {
 
         imageLoader = ImageLoader(requestQueue,
                 object : ImageLoader.ImageCache {
-                    private val cache = LruCache<String, Bitmap>(10)
+                    private val cache = LruCache<String, Bitmap>(4 * 1024) // 2Mb
 
                     override fun getBitmap(url: String): Bitmap? {
                         return cache.get(url)

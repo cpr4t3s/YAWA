@@ -57,4 +57,11 @@
     <string name="actionbar_item_add">Adicionar nova Localização</string>
     <string name="actionbar_item_edit">Editar Localizações</string>
     <string name="actionbar_label_cities">As Minhas Cidades</string>
+    <string name="settings_battery_min_str"></string>
+    <string name="settings_battery_separator">Controlo de Bateria</string>
+    <string name="settings_notification_time_summary">Seleccione a Hora para a Notificação</string>
+    <string name="settings_notification_time_title">Hora da Notificação</string>
+    <string name="settings_notifications_enabled_summary">Activar Notificações para Cidade Seleccionada</string>
+    <string name="settings_notifications_enabled_title">Activar Notificações</string>
+    <string name="settings_notifications_separator">Notificações</string>
 </resources>

@@ -24,7 +24,10 @@ class ForecastFragment : ListFragment(), LoaderManager.LoaderCallbacks<Cursor> {
     // Can't be initialized here because for each transaction between fragments, the view will be
     // infalted in onCreateView, and the SwipeRefreshLayout will be a new object
     private var swR: SwipeRefreshLayout? = null
-    private val weatherAdapter: ForecastCursorAdapter by lazy { ForecastCursorAdapter(activity, null, 0) }
+    private val weatherAdapter: ForecastCursorAdapter by lazy {
+        val imageGetter = activity.application.weatherManager
+        ForecastCursorAdapter(activity, null, 0, imageGetter)
+    }
 
     //
     private val updateDoneReceiver: BroadcastReceiver = object: BroadcastReceiver() {
