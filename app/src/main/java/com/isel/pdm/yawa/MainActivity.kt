@@ -1,10 +1,14 @@
 package com.isel.pdm.yawa
 
+import android.app.AlarmManager
 import android.app.LoaderManager
+import android.app.Notification
+import android.app.PendingIntent
 import android.content.*
 import android.database.Cursor
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.os.SystemClock
 import android.preference.PreferenceManager
 import android.support.design.widget.NavigationView
 import android.support.v4.widget.DrawerLayout
@@ -13,13 +17,10 @@ import android.support.v4.widget.SwipeRefreshLayout
 import android.util.Log
 import android.view.*
 import android.widget.*
-import com.isel.pdm.yawa.EditCitiesActivity
-
 import com.isel.pdm.yawa.fragments.WeatherDetailsFragment
 import com.isel.pdm.yawa.openweather_tools.OpenWeatherParser
 import com.isel.pdm.yawa.provider.WeatherContract
 import com.isel.pdm.yawa.service.WeatherService
-import java.util.*
 
 
 class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor>, NavigationView.OnNavigationItemSelectedListener {
@@ -145,6 +146,7 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor>,
         when(item.itemId) {
             // change city
             R.id.settings_addCity -> {
+                scheduleNotification(getNotification()!!, 10000)
                 val intent = Intent(this, CitiesActivity::class.java)
                 intent.action = YAWA.SEARCH_LOCATION_ACTION
                 startActivity(intent)
@@ -159,6 +161,38 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor>,
             R.id.settings_settings -> startActivity(Intent(this, SettingsActivity::class.java))
         }
         return true
+    }
+
+    private fun  scheduleNotification(notification: Notification, delay: Int) {
+        var notificationIntent : Intent = Intent(this, NotificationGenerator::class.java)
+        notificationIntent.putExtra("notification-id",1)
+        notificationIntent.putExtra("notification",notification)
+        var pendingIntent : PendingIntent = PendingIntent
+                .getBroadcast( this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+        var futureInMillis : Long = SystemClock.elapsedRealtime()+delay
+        var alarmManager : AlarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, futureInMillis, pendingIntent)
+
+    }
+
+    private fun  getNotification(): Notification? {
+        var builder : Notification.Builder = Notification.Builder(this)
+        builder.setContentTitle("Claudio nao pescamos nada disto")
+        builder.setContentText("depois aqui temos de meter cenas e tal")
+        builder.setSmallIcon(R.drawable.notification_template_icon_bg)
+
+        val resultIntent =  Intent(this, MainActivity::class.java)
+
+        val  resultPendingIntent =
+        PendingIntent.getActivity(
+                this,
+                0,
+                resultIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT
+        )
+
+        builder.setContentIntent(resultPendingIntent)
+        return builder.build()
     }
 
     override fun onResume() {
@@ -229,7 +263,7 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor>,
 
         val selectedCity = PreferenceManager.getDefaultSharedPreferences(this)
                 .getString(application.settingsLocationStr, application.defaultLocation)
-        // TODO removes the items from the menu but it should be better
+        // removes the items from the menu
         for (i in 0 until citiesCounter) {
             subMenu?.removeItem(i)
         }

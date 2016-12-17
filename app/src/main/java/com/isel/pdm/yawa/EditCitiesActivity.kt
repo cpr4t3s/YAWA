@@ -34,30 +34,26 @@ class EditCitiesActivity  : AppCompatActivity() {
         lv.adapter = itemsAdapter
 
         var city : String = ""
-        var position : Int = 0
+
         lv.setOnItemClickListener { adapterView, view, pos, id ->
-            position = pos
             city = favouriteCities[pos]
         }
 
         val setPref = findViewById(R.id.setPref)
         setPref.setOnClickListener {
-            //Toast.makeText(this, "setPref" + city, Toast.LENGTH_SHORT).show()
             setPrefCity(city)
-
+            onBackPressed()
         }
-        //TODO remove city not working
         val removeCity = findViewById(R.id.removeCity)
         removeCity.setOnClickListener {
-            Toast.makeText(this, "remove" + city, Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, city +" removed", Toast.LENGTH_SHORT).show()
             removeCityFromList(city)
             val itemsAdapter = ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, favouriteCities)
             lv.adapter = itemsAdapter
         }
     }
 
-    //TODO remove city not working
-    private fun removeCityFromList(city: String) {
+     private fun removeCityFromList(city: String) {
         flushFavoriteCities()
         favouriteCities.remove(city)
 
@@ -69,6 +65,7 @@ class EditCitiesActivity  : AppCompatActivity() {
         editor.putInt("citiesCounter",favouriteCities.size )
         editor.apply()
     }
+
     private fun flushFavoriteCities() {
        val sharedPref = PreferenceManager.getDefaultSharedPreferences(this)
       // TODO: meter o zero com constante nas resourses

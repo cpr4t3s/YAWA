@@ -57,4 +57,6 @@
     <string name="actionbar_item_add">Adicionar nova Localização</string>
     <string name="actionbar_item_edit">Editar Localizações</string>
     <string name="actionbar_label_cities">As Minhas Cidades</string>
+    <string name="edit_cities_set">Definir Cidade</string>
+    <string name="edit_cities_remove">Remover cidade</string>
 </resources>

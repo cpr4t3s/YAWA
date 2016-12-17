@@ -72,6 +72,7 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.isel.pdm.yawa.MainActivity" />
         </activity>
+        <receiver android:name=".NotificationGenerator" />
     </application>
 
 </manifest>
