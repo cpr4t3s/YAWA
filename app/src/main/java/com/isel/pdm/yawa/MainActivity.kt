@@ -1,11 +1,15 @@
 package com.isel.pdm.yawa
 
+import android.app.AlarmManager
 import android.app.LoaderManager
+import android.app.Notification
+import android.app.PendingIntent
 import android.content.*
 import android.database.Cursor
 import android.net.Uri
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.os.SystemClock
 import android.preference.PreferenceManager
 import android.support.design.widget.NavigationView
 import android.support.v4.widget.DrawerLayout
@@ -14,7 +18,6 @@ import android.support.v4.widget.SwipeRefreshLayout
 import android.util.Log
 import android.view.*
 import android.widget.*
-
 import com.isel.pdm.yawa.fragments.WeatherDetailsFragment
 import com.isel.pdm.yawa.openweather_tools.OpenWeatherParser
 import com.isel.pdm.yawa.provider.IconItem
@@ -22,10 +25,10 @@ import com.isel.pdm.yawa.provider.WeatherContract
 import com.isel.pdm.yawa.service.WeatherService
 
 
-
 class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor>, NavigationView.OnNavigationItemSelectedListener {
     private val BACK_PRESS_INTERVAL: Long = 2000 // 2 seconds
 
+    private var subMenu : SubMenu? =null
     private var lastBackTime: Long = 0
     private val txtTitleCity by lazy { findViewById(R.id.txtTitleCity) as TextView }
     private val weatherFragment by lazy { fragmentManager.findFragmentById(R.id.weather_detail)
@@ -78,6 +81,8 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor>,
 //        val outputStream = cr.openOutputStream(Uri.withAppendedPath(IconItem.CONTENT_URI, "10"))
 //        outputStream.write("bolassss string de teste".toByteArray())
 //        outputStream.close()
+        val menu = navigationView?.menu
+        subMenu= menu?.addSubMenu(R.string.actionbar_label_cities)
     }
 
     override fun onStop() {
@@ -128,7 +133,10 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor>,
                 intent.action = YAWA.ADD_NEW_LOCATION_ACTION
                 startActivity(intent)
             }
-            R.id.navigation_edit -> {println("edittttttttt")}
+            R.id.navigation_edit -> {
+                val intent = Intent(this, EditCitiesActivity::class.java)
+                startActivity(intent)
+            }
             else -> {
                 selectCity(menuItem.title.toString())
                 setCityOnTitle()
@@ -144,6 +152,7 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor>,
         when(item.itemId) {
             // change city
             R.id.settings_addCity -> {
+                scheduleNotification(getNotification()!!, 10000)
                 val intent = Intent(this, CitiesActivity::class.java)
                 intent.action = YAWA.SEARCH_LOCATION_ACTION
                 startActivity(intent)
@@ -158,6 +167,38 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor>,
             R.id.settings_settings -> startActivity(Intent(this, SettingsActivity::class.java))
         }
         return true
+    }
+
+    private fun  scheduleNotification(notification: Notification, delay: Int) {
+        var notificationIntent : Intent = Intent(this, NotificationGenerator::class.java)
+        notificationIntent.putExtra("notification-id",1)
+        notificationIntent.putExtra("notification",notification)
+        var pendingIntent : PendingIntent = PendingIntent
+                .getBroadcast( this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+        var futureInMillis : Long = SystemClock.elapsedRealtime()+delay
+        var alarmManager : AlarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, futureInMillis, pendingIntent)
+
+    }
+
+    private fun  getNotification(): Notification? {
+        var builder : Notification.Builder = Notification.Builder(this)
+        builder.setContentTitle("Claudio nao pescamos nada disto")
+        builder.setContentText("depois aqui temos de meter cenas e tal")
+        builder.setSmallIcon(R.drawable.notification_template_icon_bg)
+
+        val resultIntent =  Intent(this, MainActivity::class.java)
+
+        val  resultPendingIntent =
+        PendingIntent.getActivity(
+                this,
+                0,
+                resultIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT
+        )
+
+        builder.setContentIntent(resultPendingIntent)
+        return builder.build()
     }
 
     override fun onResume() {
@@ -222,16 +263,16 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor>,
     }
 
     private fun updateActionbarItems() {
-        val menu = navigationView?.menu
-        val selectedCity = PreferenceManager.getDefaultSharedPreferences(this)
-                .getString(application.settingsLocationStr, application.defaultLocation)
-
         val sharedPref = PreferenceManager.getDefaultSharedPreferences(this)
         // TODO: meter o zero com constante nas resourses
         val citiesCounter = sharedPref.getInt("citiesCounter", 0)
 
-        val subMenu = menu?.addSubMenu(R.string.actionbar_label_cities)
-
+        val selectedCity = PreferenceManager.getDefaultSharedPreferences(this)
+                .getString(application.settingsLocationStr, application.defaultLocation)
+        // removes the items from the menu
+        for (i in 0 until citiesCounter) {
+            subMenu?.removeItem(i)
+        }
         for (i in 0 until citiesCounter) {
             val city = sharedPref.getString("city" + i, "--")
             val menuItem = subMenu?.add(Menu.NONE, i, Menu.NONE, city)
@@ -240,15 +281,6 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor>,
                 navigationView?.setCheckedItem(i)
         }
 
-//        for (i in 0 until navigationView.childCount) {
-//            val child = navigationView.getChildAt(i)
-//            if (child != null && child is ListView) {
-//                val menuView = child
-//                val adapter = menuView.adapter as HeaderViewListAdapter
-//                val wrapped = adapter.wrappedAdapter as BaseAdapter
-//                wrapped.notifyDataSetChanged()
-//            }
-//        }
     }
 
     /**
