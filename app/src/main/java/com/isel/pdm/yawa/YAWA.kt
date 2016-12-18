@@ -9,12 +9,15 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.os.SystemClock
 import android.preference.PreferenceManager
 import com.isel.pdm.yawa.DataContainers.WeatherStateDO
 import com.isel.pdm.yawa.service.WeatherService
 import com.isel.pdm.yawa.openweather_tools.OpenWeatherRequester
+import com.isel.pdm.yawa.provider.IconCacheContract
 import com.isel.pdm.yawa.service.BootCompleteReceiver
+import com.isel.pdm.yawa.tools.CacheResolver
 import com.isel.pdm.yawa.tools.MetricsResolver
 import java.util.*
 
@@ -41,11 +44,15 @@ class YAWA : Application() {
         val NOTIFICATIONS_INTENT_ID = 0
         //
         val DEFAULT_ALARM_TIME = "12:0"
+        // Cache in MB
+        val CACHE_MAX_SIZE: Int = 2
     }
 
+    // defines a notification time
     class GenericTime(val hour: Int, val minutes: Int) {}
 
-    val weatherManager by lazy { WeatherManager(this, OpenWeatherRequester(this)) }
+    val weatherManager by lazy { WeatherManager(this, OpenWeatherRequester(this, cacheResolver)) }
+    val cacheResolver by lazy { CacheResolver<Bitmap>(CACHE_MAX_SIZE, contentResolver, IconCacheContract.Icon.CONTENT_URI) }
     //
     val defaultLocation: String by lazy { resources.getString(R.string.default_location) }
     val defaultForecastDays: Int by lazy { resources.getString(R.string.default_forecast_days).toInt() }
@@ -65,6 +72,10 @@ class YAWA : Application() {
     //val alarmManager by lazy {applicationContext.getSystemService(Context.ALARM_SERVICE) as AlarmManager}
     val serviceAlarmId = 0
 
+
+    init {
+
+    }
 
     fun tryRegisterServiceOnAlarmManager() {
         val settingsRefreshRateStr = this.resources?.getString(R.string.settings_refresh_rate_str)
@@ -172,6 +183,7 @@ class YAWA : Application() {
         calendar.set(Calendar.HOUR_OF_DAY, time.hour)
         calendar.set(Calendar.MINUTE, time.minutes)
 
+        // TODO: Colocar o pendingIntent numa var de instância
         val notificationIntent : Intent = Intent(this, NotificationGenerator::class.java)
         notificationIntent.putExtra("notification-id", 1)
         notificationIntent.putExtra("notification", notification)
@@ -205,7 +217,7 @@ class YAWA : Application() {
 
     private fun  getNotification(): Notification {
         val builder : Notification.Builder = Notification.Builder(this)
-        val currentWeather: WeatherStateDO = weatherManager.getCurrentWeather()
+        val currentWeather: WeatherStateDO = weatherManager.getCurrentWeather(cacheResolver)
         val city = PreferenceManager.getDefaultSharedPreferences(applicationContext).
                 getString(settingsLocationStr, defaultLocation)
         val unit = PreferenceManager.getDefaultSharedPreferences(applicationContext).
@@ -246,6 +258,9 @@ class YAWA : Application() {
 
 val Application.weatherManager : WeatherManager
     get() = (this as YAWA).weatherManager
+
+val Application.cacheResolver: CacheResolver<Bitmap>
+    get() = (this as YAWA).cacheResolver
 
 val Application.defaultLocation: String
     get() = (this as YAWA).defaultLocation

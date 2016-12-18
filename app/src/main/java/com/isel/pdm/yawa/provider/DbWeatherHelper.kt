@@ -17,9 +17,11 @@ class DbWeatherHelper(context: Context?) : SQLiteOpenHelper(context, DbSchema.DB
 
     private fun createDb(db: SQLiteDatabase?) {
         db!!.execSQL(DbSchema.Weather.DDL_CREATE_TABLE)
+        db!!.execSQL(DbSchema.Icon.DDL_CREATE_TABLE)
     }
 
     private fun deleteDb(db: SQLiteDatabase?) {
         db!!.execSQL(DbSchema.Weather.DDL_DROP_TABLE)
+        db!!.execSQL(DbSchema.Icon.DDL_DROP_TABLE)
     }
 }

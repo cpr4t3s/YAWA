@@ -1,12 +1,14 @@
 package com.isel.pdm.yawa.openweather_tools
 
 import android.database.Cursor
+import android.graphics.Bitmap
 import com.isel.pdm.yawa.DataContainers.CityDO
 import com.isel.pdm.yawa.DataContainers.ForecastDO
 
 import com.isel.pdm.yawa.DataContainers.WeatherStateDO
 import com.isel.pdm.yawa.iterator
 import com.isel.pdm.yawa.provider.DbSchema
+import com.isel.pdm.yawa.tools.ICacheSystem
 
 import org.json.JSONArray
 import org.json.JSONException
@@ -70,15 +72,17 @@ object OpenWeatherParser {
         val wind: JSONObject = jsonObject.getJSONObject("wind")
         return buildWeatherStateDO(weather, weatherDescription, wind)
     }
-    fun parseWeatherState(data: Cursor): WeatherStateDO {
+    fun parseWeatherState(data: Cursor, cache: ICacheSystem<Bitmap>): WeatherStateDO {
         val weatherState: WeatherStateDO?
         // we are only interested in the first row
         if (data.moveToNext()) {
+            val icon: Bitmap? = getIconFromId(data.getString(DbSchema.Weather.COLUMNS_ID.COL_ICON_ID.ordinal), cache)
+
             weatherState = WeatherStateDO(
                     data.getString(DbSchema.Weather.COLUMNS_ID.COL_MAIN_STATE.ordinal),
                     data.getString(DbSchema.Weather.COLUMNS_ID.COL_DESCRIPTION.ordinal),
                     data.getString(DbSchema.Weather.COLUMNS_ID.COL_ICON_ID.ordinal),
-                    null,
+                    icon,
                     data.getDouble(DbSchema.Weather.COLUMNS_ID.COL_TEMPERATURE.ordinal),
                     data.getDouble(DbSchema.Weather.COLUMNS_ID.COL_TEMPERATURE_MIN.ordinal),
                     data.getDouble(DbSchema.Weather.COLUMNS_ID.COL_TEMPERATURE_MAX.ordinal),
@@ -94,10 +98,15 @@ object OpenWeatherParser {
         }
         // Create a dummy weather
         else {
-            weatherState = WeatherStateDO("--", "--", "--", null, .0, .0, .0, .0, .0, .0, .0, .0, .0, 0, 0)
+            weatherState = WeatherStateDO("--", "--", "0", null, .0, .0, .0, .0, .0, .0, .0, .0, .0, 0, 0)
         }
 
         return weatherState
+    }
+
+    private fun getIconFromId(iconId: String, cache: ICacheSystem<Bitmap>): Bitmap? {
+        val entry = cache.getItem(iconId)
+        return entry.item
     }
 
     fun parseCitiesList(jsonObject: JSONObject) : List<CityDO> {

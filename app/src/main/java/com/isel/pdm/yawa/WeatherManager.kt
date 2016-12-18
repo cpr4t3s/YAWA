@@ -19,7 +19,7 @@ import com.isel.pdm.yawa.openweather_tools.OpenWeatherParser
 import com.isel.pdm.yawa.openweather_tools.URLTranslator
 import com.isel.pdm.yawa.provider.DbSchema
 import com.isel.pdm.yawa.provider.WeatherContract
-
+import com.isel.pdm.yawa.tools.ICacheSystem
 
 
 class WeatherManager constructor(context: Context, val requester: IRequestParser) {
@@ -192,7 +192,7 @@ class WeatherManager constructor(context: Context, val requester: IRequestParser
         this.requester.addRequest(jsObjRequest)
     }
 
-    fun getCurrentWeather(): WeatherStateDO {
+    fun getCurrentWeather(cache: ICacheSystem<Bitmap>): WeatherStateDO {
         val sharedPref = PreferenceManager.getDefaultSharedPreferences(context.applicationContext)
         val city = sharedPref.getString(settingsLocationStr, defaultLocation)
         val selectionClause: String =
@@ -207,7 +207,7 @@ class WeatherManager constructor(context: Context, val requester: IRequestParser
                 null)
 
 
-        return OpenWeatherParser.parseWeatherState(resultCursor)
+        return OpenWeatherParser.parseWeatherState(resultCursor, cache)
     }
 
     fun getWeatherIcon(iconID: String, callbackSet : ICallbackSet) {
@@ -249,34 +249,29 @@ class WeatherManager constructor(context: Context, val requester: IRequestParser
         this.requester.addRequest(jsObjRequest)
     }
 
-    private fun setForegroundWeatherIcon(bitmap: Bitmap, index: Int) {
-        //TODO: cache
-        //forecastState?.weatherStateDOList?.get(index)?.weatherIcon = bitmap
-    }
-
     /**
      * Get icons bitmap. Only call onSucceed when last == true
      */
     private fun getWeatherIconForForecast(iconID: String, callbackSet : ICallbackSet, index: Int) {
         //TODO: cache
-//        val imageLoader = this.requester.getImgLoader()
-//
-//        val url = URLTranslator.getWeatherIconURL(this.context, iconID)
-//        imageLoader.get(
-//                url,
-//                object : ImageLoader.ImageListener {
-//                    override fun onResponse(response: ImageLoader.ImageContainer, isImmediate: Boolean) {
-//                        response.bitmap?.let { setForegroundWeatherIcon(response.bitmap, index) }
-//                        callbackSet.onSucceed( this@WeatherManager.forecastState!! )
-//                    }
-//
-//                    override fun onErrorResponse(error: VolleyError) {
-//                        Log.e(YAWA.YAWA_ERROR_TAG, "Error on 'getWeatherIconForForecast()'.\n" + error.message)
-//                        //TODO: set an error image
-//                        //WeatherManager.this.weatherState.setWeatherIcon(R.drawable.err_image);
-//                        callbackSet.onError(error)
-//                    }
-//                })
+        val imageLoader = this.requester.getImgLoader()
+
+        val url = URLTranslator.getWeatherIconURL(this.context, iconID)
+        imageLoader.get(
+                url,
+                object : ImageLoader.ImageListener {
+                    override fun onResponse(response: ImageLoader.ImageContainer, isImmediate: Boolean) {
+                        //response.bitmap?.let { setForegroundWeatherIcon(response.bitmap, index) }
+                        callbackSet.onSucceed(response.bitmap)
+                    }
+
+                    override fun onErrorResponse(error: VolleyError) {
+                        Log.e(YAWA.YAWA_ERROR_TAG, "Error on 'getWeatherIconForForecast()'.\n" + error.message)
+                        //TODO: set an error image
+                        //WeatherManager.this.weatherState.setWeatherIcon(R.drawable.err_image);
+                        callbackSet.onError(error)
+                    }
+                })
     }
 
     /**
@@ -296,11 +291,24 @@ class WeatherManager constructor(context: Context, val requester: IRequestParser
 
             // TODO: corrigir depois de saber como devem ser as caches
             // Get all the weather icons bitmap for each day in forecast
-//            var idx = 0
-//            for(weatherDO in forecastState?.weatherStateDOList!!) {
-//                getWeatherIconForForecast(weatherDO.weatherIconID, callbackSet, idx)
-//                idx++
-//            }
+            var idx = 0
+            for(weatherDO in forecastWeather.weatherStateDOList) {
+                getWeatherIconForForecast(
+                        weatherDO.weatherIconID,
+                        object: ICallbackSet {
+                            override fun onError(error: VolleyError) {
+                                Log.e("!!!", "--------------- ERRO    updateForecastWeather")
+                                println(error.message)
+                            }
+
+                            override fun onSucceed(response: Any?) {
+                                Log.e("!!!", "--------------- SUCESSO   updateForecastWeather")
+                            }
+
+                        },
+                        idx)
+                idx++
+            }
         }, Response.ErrorListener { error ->
             Log.e(YAWA.YAWA_ERROR_TAG, "Error on 'updateForecastWeather()'.\n" + error.message)
             callbackSet?.onError(error)
@@ -312,7 +320,7 @@ class WeatherManager constructor(context: Context, val requester: IRequestParser
         this.requester.addRequest(jsObjRequest)
     }
 
-    fun getSpecificForecastDay(city: String, id: Int): WeatherStateDO {
+    fun getSpecificForecastDay(city: String, id: Int, cache: ICacheSystem<Bitmap>): WeatherStateDO {
 
         val selectionClause: String =
                 WeatherContract.Weather.CITY_ID + " = ? AND " + WeatherContract.Weather.CURRENT + " = ?"
@@ -327,7 +335,7 @@ class WeatherManager constructor(context: Context, val requester: IRequestParser
 
         // set the cursor in the right position
         cursor.moveToPosition(id)
-        val weatherState = OpenWeatherParser.parseWeatherState(cursor)
+        val weatherState = OpenWeatherParser.parseWeatherState(cursor, cache)
         cursor.close()
 
         return weatherState

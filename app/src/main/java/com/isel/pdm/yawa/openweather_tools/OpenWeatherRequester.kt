@@ -3,15 +3,16 @@ package com.isel.pdm.yawa.openweather_tools
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.util.LruCache
+import android.net.Uri
 
 import com.android.volley.Request
 import com.android.volley.RequestQueue
 import com.android.volley.toolbox.ImageLoader
 import com.android.volley.toolbox.Volley
 import com.isel.pdm.yawa.IRequestParser
+import com.isel.pdm.yawa.tools.ICacheSystem
 
-class OpenWeatherRequester constructor(context: Context) : IRequestParser {
+class OpenWeatherRequester constructor(context: Context, val cache: ICacheSystem<Bitmap>) : IRequestParser {
     val requestQueue: RequestQueue
     val imageLoader: ImageLoader
 
@@ -20,16 +21,19 @@ class OpenWeatherRequester constructor(context: Context) : IRequestParser {
 
         imageLoader = ImageLoader(requestQueue,
                 object : ImageLoader.ImageCache {
-                    private val cache = LruCache<String, Bitmap>(4 * 1024) // 2Mb
-
                     override fun getBitmap(url: String): Bitmap? {
-                        return cache.get(url)
+                        return cache.getItem(convertIconUrlToIconId(url)).item
                     }
 
                     override fun putBitmap(url: String, bitmap: Bitmap) {
-                        cache.put(url, bitmap)
+                        cache.setItem(ICacheSystem.CacheEntry(convertIconUrlToIconId(url), bitmap, 0))
                     }
                 })
+    }
+
+    private fun convertIconUrlToIconId(url: String): String {
+        val uri = Uri.parse(url)
+        return uri.lastPathSegment.split(".")[0]
     }
 
     override fun <T> addRequest(req: Request<T>) {

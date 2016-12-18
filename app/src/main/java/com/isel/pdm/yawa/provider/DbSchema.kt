@@ -6,9 +6,37 @@ import android.provider.BaseColumns
 object DbSchema {
 
     val DB_NAME = "weather.db"
-    val DB_VERSION = 2
+    val DB_VERSION = 5
 
     val COL_ID = BaseColumns._ID
+
+    // Represents the Icons cache
+    object Icon {
+        val TBL_NAME = "iconCache"
+
+        val COL_ICON_ID = "iconId"
+        val COL_EXPIRES_AT = "expiresAt"
+
+        /**
+         * It MUST be in the same order of 'DDL_CREATE_TABLE'
+         */
+        enum class COLUMNS_ID {
+            COL_ID,
+            COL_ICON_ID,
+            COL_EXPIRES_AT
+        }
+
+        /**
+         * It MUST be in the same order of enum 'COLUMNS_ID'
+         */
+        val DDL_CREATE_TABLE =
+                """CREATE TABLE $TBL_NAME (
+                        $COL_ID INTEGER PRIMARY KEY,
+                        $COL_ICON_ID TEXT,
+                        $COL_EXPIRES_AT TEXT)"""
+
+        val DDL_DROP_TABLE = "DROP TABLE IF EXISTS $TBL_NAME"
+    }
 
     object Weather {
         val TBL_NAME = "weather"
@@ -76,6 +104,6 @@ object DbSchema {
                         COL_WIND_SPEED + " REAL, " +
                         COL_WIND_DEGREES + " REAL)"
 
-        val DDL_DROP_TABLE = "DROP TABLE IF EXISTS " + TBL_NAME
+        val DDL_DROP_TABLE = "DROP TABLE IF EXISTS $TBL_NAME"
     }
 }

@@ -18,12 +18,13 @@ import com.isel.pdm.yawa.WeatherManager
 import com.isel.pdm.yawa.YAWA
 import com.isel.pdm.yawa.provider.DbSchema
 import com.isel.pdm.yawa.tools.DateConverter
+import com.isel.pdm.yawa.tools.ICacheSystem
 import java.text.SimpleDateFormat
 import java.util.*
 
 
 class ForecastCursorAdapter(activity: Activity, cursor: Cursor?,
-                            flags: Int, val imageGetter: WeatherManager): CursorAdapter(activity, cursor, flags) {
+                            flags: Int, val cache: ICacheSystem<Bitmap>): CursorAdapter(activity, cursor, flags) {
 
     companion object {
         val TAG: String = ForecastCursorAdapter::class.java.simpleName
@@ -49,26 +50,13 @@ class ForecastCursorAdapter(activity: Activity, cursor: Cursor?,
         val date = DateConverter.unixSecondsToDateString(forecastDate!!,
                 TimeZone.getDefault(), SimpleDateFormat("yyyy-MM-dd, E"))
         dateTextView.text = date
-        // TODO: fazer quando estiver definido como sao as caches
-        val iconId = cursor?.getString(DbSchema.Weather.COLUMNS_ID.COL_ICON_ID.ordinal)
-        imageGetter.getWeatherIcon(iconId!!, object :ICallbackSet {
-            val imageView: ImageView = thumb_image
 
-            override fun onError(error: VolleyError) {
-                Log.e(TAG, error.message)
-            }
-            override fun onSucceed(response: Any?) {
-                Log.e(TAG, "fora: ${response.toString()}")
-                if(response != null) {
-                    Log.e(TAG, "dentro: ${response.toString()}")
-                    val bitmap: Bitmap? = response as Bitmap
-                    imageView.setImageBitmap(bitmap)
-                }
-            }
-        })
-//        weather[IWeatherManager.WEATHER_ICON_KEY]?.let {
-//            thumb_image.setImageBitmap(weather[IWeatherManager.WEATHER_ICON_KEY] as Bitmap)
-//        }
+        val iconId = cursor?.getString(DbSchema.Weather.COLUMNS_ID.COL_ICON_ID.ordinal)
+        val icon: Bitmap? = cache.getItem(iconId!!).item
+        icon?.let {
+            thumb_image.setImageBitmap(icon)
+        }
+
     }
 }
 

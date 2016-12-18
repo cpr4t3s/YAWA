@@ -25,8 +25,7 @@ class ForecastFragment : ListFragment(), LoaderManager.LoaderCallbacks<Cursor> {
     // infalted in onCreateView, and the SwipeRefreshLayout will be a new object
     private var swR: SwipeRefreshLayout? = null
     private val weatherAdapter: ForecastCursorAdapter by lazy {
-        val imageGetter = activity.application.weatherManager
-        ForecastCursorAdapter(activity, null, 0, imageGetter)
+        ForecastCursorAdapter(activity, null, 0, activity.application.cacheResolver)
     }
 
     //

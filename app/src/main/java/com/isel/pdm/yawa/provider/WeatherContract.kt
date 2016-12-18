@@ -9,7 +9,7 @@ object WeatherContract {
 
     val AUTHORITY = "com.isel.pdm.yawa.provider"
 
-    val CONTENT_URI = Uri.parse("content://" + AUTHORITY)
+    val CONTENT_URI = Uri.parse("content://$AUTHORITY")
 
     val MEDIA_BASE_SUBTYPE = "/vnd.weather."
 
@@ -47,7 +47,7 @@ object WeatherContract {
         val WIND_DEGREES = "windDegrees"
 
         val SELECT_ALL = arrayOf(
-                BaseColumns._ID,
+                DbSchema.COL_ID,
                 CITY_ID,
                 CURRENT,
                 LAST_UPDATE,

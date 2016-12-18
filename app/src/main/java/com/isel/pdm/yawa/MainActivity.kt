@@ -218,7 +218,7 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor>,
             YAWA.WEATHER_LOADER_ID -> {
                 if (cursor != null) {
                     // updates weather data
-                    val weatherState = OpenWeatherParser.parseWeatherState(cursor)
+                    val weatherState = OpenWeatherParser.parseWeatherState(cursor, application.cacheResolver)
                     // TODO: necessario actualizar na UI Thread?
                     runOnUiThread { weatherFragment.updateUI(weatherState) }
                 }
