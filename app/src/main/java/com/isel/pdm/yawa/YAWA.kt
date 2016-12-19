@@ -56,6 +56,7 @@ class YAWA : Application() {
     //
     val defaultLocation: String by lazy { resources.getString(R.string.default_location) }
     val defaultForecastDays: Int by lazy { resources.getString(R.string.default_forecast_days).toInt() }
+    val defaultMetric: String by lazy { resources.getString(R.string.default_units) }
     //
     val settingsLocationStr: String by lazy { resources.getString(R.string.settings_location_str) }
     val settingsForecastDaysStr: String by lazy { resources.getString(R.string.settings_forecast_days_str) }
@@ -63,7 +64,6 @@ class YAWA : Application() {
     val settingsAutoRefreshStr: String by lazy { resources.getString(R.string.settings_auto_refresh_str) }
     val settingsNotificationEnabledStr: String by lazy { resources.getString(R.string.settings_notifications_enabled_str) }
     val settingsNotificationTimeStr: String by lazy { resources.getString(R.string.settings_notification_time_str) }
-    val defaultMetric: String by lazy { resources.getString(R.string.default_units) }
     val settingsMetricStr: String by lazy { resources.getString(R.string.settings_units_str) }
 
     //
@@ -73,8 +73,20 @@ class YAWA : Application() {
     val serviceAlarmId = 0
 
 
-    init {
+    fun onSystemBootCompleted() {
+        val prefs = PreferenceManager.getDefaultSharedPreferences(applicationContext)
+        val autoRefreshPolicyEnabled: Boolean = prefs.getBoolean(settingsAutoRefreshStr, true)
+        val notificationEnabled: Boolean = prefs.getBoolean(settingsNotificationEnabledStr, false)
 
+        if(autoRefreshPolicyEnabled) tryRegisterServiceOnAlarmManager()
+        //
+        if(notificationEnabled) startNotificationsAfterBoot()
+    }
+
+    private fun startNotificationsAfterBoot() {
+        val prefs = PreferenceManager.getDefaultSharedPreferences(applicationContext)
+        val settingsNotificationTime = prefs.getString(settingsNotificationTimeStr, DEFAULT_ALARM_TIME)
+        scheduleNotification(getNotification(), convertTimeFromString(settingsNotificationTime))
     }
 
     fun tryRegisterServiceOnAlarmManager() {
@@ -96,16 +108,8 @@ class YAWA : Application() {
         }
     }
 
-    /**
-     * Get the configuration of Auto-Refresh on app bootup
-     */
-    private fun setInitialRefreshPolicy(prefs: SharedPreferences) {
-        val settingsAutoRefreshStr = this.resources.getString(R.string.settings_auto_refresh_str)
-        val autoRefreshPolicy = prefs.getBoolean(settingsAutoRefreshStr, true)
-
-        autoRefreshEnabled = autoRefreshPolicy
-        if(autoRefreshEnabled) {
-            tryRegisterServiceOnAlarmManager()
+    private fun setRefreshPolicyOnBoot(enabled: Boolean) {
+        if(enabled) {
             overrideBootIntentConfig(PackageManager.COMPONENT_ENABLED_STATE_ENABLED)
         }
         else {
@@ -118,6 +122,7 @@ class YAWA : Application() {
         val state: Int
         if(enabled) {
             tryRegisterServiceOnAlarmManager()
+            setRefreshPolicyOnBoot(enabled)
             state = PackageManager.COMPONENT_ENABLED_STATE_ENABLED
         } else {
             val intent = Intent(applicationContext, WeatherService::class.java)
@@ -149,6 +154,7 @@ class YAWA : Application() {
             run {
                 // aqui podemos ignorar os default values porque se foi alterado, já existe
                 if(key == settingsAutoRefreshStr) {
+                    // TODO: é preciso alterar o alarme tambem quando a preferencia do tempo é alterada
                     setAutoRefreshAfterPrefChange(sharedPreferences.getBoolean(key, true))
                 }
                 else if (key == settingsNotificationEnabledStr) {

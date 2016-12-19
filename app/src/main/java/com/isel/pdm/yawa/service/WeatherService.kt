@@ -4,6 +4,7 @@ import android.app.Service
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.net.ConnectivityManager
 import android.os.*
 import android.preference.PreferenceManager
@@ -16,7 +17,7 @@ class BootCompleteReceiver: BroadcastReceiver() {
     override fun onReceive(context: Context?, p1: Intent?) {
         // we get an ReceiverResctrictredContext in context, so we need a cast
         val app = context?.applicationContext as YAWA
-        app.tryRegisterServiceOnAlarmManager()
+        app.onSystemBootCompleted()
     }
 }
 
@@ -30,6 +31,8 @@ class WeatherService: Service() {
     private var updatingForecastWeather: Boolean = false
     private val onlyWifiSettingStr by lazy {resources.getString(R.string.settings_only_wifi_str)}
     private val defaultWifiSettingsValue by lazy {resources.getBoolean(R.bool.default_only_wifi_setting)}
+    private val minBatteryPercentStr by lazy {resources.getString(R.string.settings_battery_min_str)}
+    private val defaultMinBatteryPercentValue by lazy {resources.getInteger(R.integer.default_min_battery)}
 
     private val currentWeatherCallbackSet : ICallbackSet by lazy {
         object : ICallbackSet {
@@ -73,7 +76,7 @@ class WeatherService: Service() {
         }
     }
 
-    private fun canProceed(): Boolean {
+    private fun wifiConnected(): Boolean {
         val connManager = applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val networkInfo = connManager.activeNetworkInfo
         // no active network?
@@ -87,6 +90,26 @@ class WeatherService: Service() {
         if(onlyWifi && networkInfo.type != ConnectivityManager.TYPE_WIFI) return false
 
         return true
+    }
+
+    private fun batteryOk(): Boolean {
+        val intent = registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+        val level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, 0)
+        val scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, 100)
+        val status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, 0)
+
+        // charging
+        if(status === BatteryManager.BATTERY_STATUS_CHARGING || status === BatteryManager.BATTERY_STATUS_FULL) return true
+
+        val percent = level * 100 / scale
+        val minPercentage = PreferenceManager.getDefaultSharedPreferences(applicationContext).
+                getInt(minBatteryPercentStr, defaultMinBatteryPercentValue)
+
+        return percent >= minPercentage
+    }
+
+    private fun canProceed(): Boolean {
+        return wifiConnected() && batteryOk()
     }
 
     // Handler that receives messages from the thread

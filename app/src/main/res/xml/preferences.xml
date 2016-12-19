@@ -43,7 +43,7 @@
             android:key="@string/settings_battery_min_str"
             android:title="@string/settings_min_battery_title"
             android:dialogTitle="@string/settings_min_battery_dialog_title"
-            android:defaultValue="@string/default_min_battery"
+            android:defaultValue="@integer/default_min_battery"
             app:number_picker_min_val= "1"
             app:number_picker_max_val= "99"/>
     </PreferenceCategory>
