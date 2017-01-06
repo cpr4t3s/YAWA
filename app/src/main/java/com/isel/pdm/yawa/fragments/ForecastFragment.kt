@@ -5,6 +5,8 @@ import android.app.LoaderManager
 import android.content.*
 import android.database.Cursor
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.preference.PreferenceManager
 import android.support.v4.widget.SwipeRefreshLayout
 import android.util.Log
@@ -30,17 +32,17 @@ class ForecastFragment : ListFragment(), LoaderManager.LoaderCallbacks<Cursor> {
 
     //
     private val updateDoneReceiver: BroadcastReceiver = object: BroadcastReceiver() {
+        private val hnd: Handler = Handler(Looper.getMainLooper())
 
         override fun onReceive(context: Context, intent: Intent) {
             if (intent.action == YAWA.REFRESH_WEATHER_DONE_ACTION) {
-                // TODO: possível problema de concorrencia
-                this@ForecastFragment.activity.runOnUiThread {
-                    this@ForecastFragment.swR?.isRefreshing = false
-                }
+                this@ForecastFragment.swR?.isRefreshing = false
 
-                val errTag: String = "errMsg"
-                if(intent.hasExtra(errTag)) {
-                    Toast.makeText(activity, intent.getStringExtra(errTag), Toast.LENGTH_SHORT).show()
+                hnd.post {
+                    val errTag: String = "errMsg"
+                    if(intent.hasExtra(errTag)) {
+                        Toast.makeText(activity, intent.getStringExtra(errTag), Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
         }

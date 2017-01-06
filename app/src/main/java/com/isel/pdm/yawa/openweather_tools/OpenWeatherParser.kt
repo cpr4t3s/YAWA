@@ -1,11 +1,14 @@
 package com.isel.pdm.yawa.openweather_tools
 
+import android.content.Context
 import android.database.Cursor
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import com.isel.pdm.yawa.DataContainers.CityDO
 import com.isel.pdm.yawa.DataContainers.ForecastDO
 
 import com.isel.pdm.yawa.DataContainers.WeatherStateDO
+import com.isel.pdm.yawa.R
 import com.isel.pdm.yawa.iterator
 import com.isel.pdm.yawa.provider.DbSchema
 import com.isel.pdm.yawa.tools.ICacheSystem
@@ -13,6 +16,7 @@ import com.isel.pdm.yawa.tools.ICacheSystem
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
+import java.io.FileNotFoundException
 
 import java.util.*
 
@@ -72,11 +76,11 @@ object OpenWeatherParser {
         val wind: JSONObject = jsonObject.getJSONObject("wind")
         return buildWeatherStateDO(weather, weatherDescription, wind)
     }
-    fun parseWeatherState(data: Cursor, cache: ICacheSystem<Bitmap>): WeatherStateDO {
+    fun parseWeatherState(data: Cursor, cache: ICacheSystem<Bitmap>, context: Context): WeatherStateDO {
         val weatherState: WeatherStateDO?
         // we are only interested in the first row
         if (data.moveToNext()) {
-            val icon: Bitmap? = getIconFromId(data.getString(DbSchema.Weather.COLUMNS_ID.COL_ICON_ID.ordinal), cache)
+            val icon: Bitmap? = getIconFromId(data.getString(DbSchema.Weather.COLUMNS_ID.COL_ICON_ID.ordinal), cache, context)
 
             weatherState = WeatherStateDO(
                     data.getString(DbSchema.Weather.COLUMNS_ID.COL_MAIN_STATE.ordinal),
@@ -104,8 +108,25 @@ object OpenWeatherParser {
         return weatherState
     }
 
-    private fun getIconFromId(iconId: String, cache: ICacheSystem<Bitmap>): Bitmap? {
-        val entry = cache.getItem(iconId)
+    private fun getIconFromId(iconId: String, cache: ICacheSystem<Bitmap>, context: Context): Bitmap? {
+        val entry: ICacheSystem.CacheEntry<Bitmap>
+        try {
+            entry = cache.getItem(iconId)
+        } catch (e: FileNotFoundException) {
+            entry = ICacheSystem.CacheEntry<Bitmap>("", BitmapFactory.decodeResource(context.resources, R.drawable.icon_not_available), 0, false)
+        }
+        return entry.item
+    }
+
+    fun getIconFromCursor(cursor: Cursor, cache: ICacheSystem<Bitmap>, context: Context): Bitmap? {
+        if(cursor.count == 0) return BitmapFactory.decodeResource(context.resources, R.drawable.icon_not_available)
+        val entry: ICacheSystem.CacheEntry<Bitmap>
+        val iconId = cursor.getString(DbSchema.Icon.COLUMNS_ID.COL_ICON_ID.ordinal)
+        try {
+            entry = cache.getItem(iconId)
+        } catch (e: FileNotFoundException) {
+            entry = ICacheSystem.CacheEntry<Bitmap>("", BitmapFactory.decodeResource(context.resources, R.drawable.icon_not_available), 0, false)
+        }
         return entry.item
     }
 

@@ -207,7 +207,7 @@ class WeatherManager constructor(context: Context, val requester: IRequestParser
                 null)
 
 
-        return OpenWeatherParser.parseWeatherState(resultCursor, cache)
+        return OpenWeatherParser.parseWeatherState(resultCursor, cache, context)
     }
 
     fun getWeatherIcon(iconID: String, callbackSet : ICallbackSet) {
@@ -335,7 +335,7 @@ class WeatherManager constructor(context: Context, val requester: IRequestParser
 
         // set the cursor in the right position
         cursor.moveToPosition(id)
-        val weatherState = OpenWeatherParser.parseWeatherState(cursor, cache)
+        val weatherState = OpenWeatherParser.parseWeatherState(cursor, cache, context)
         cursor.close()
 
         return weatherState

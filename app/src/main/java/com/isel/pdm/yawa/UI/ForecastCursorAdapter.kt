@@ -17,6 +17,7 @@ import com.isel.pdm.yawa.R
 import com.isel.pdm.yawa.WeatherManager
 import com.isel.pdm.yawa.YAWA
 import com.isel.pdm.yawa.provider.DbSchema
+import com.isel.pdm.yawa.provider.IconCacheContract
 import com.isel.pdm.yawa.tools.DateConverter
 import com.isel.pdm.yawa.tools.ICacheSystem
 import java.text.SimpleDateFormat
@@ -39,10 +40,22 @@ class ForecastCursorAdapter(activity: Activity, cursor: Cursor?,
     }
 
     override fun bindView(parent: View?, context: Context?, cursor: Cursor?) {
+        val thumb_image = parent?.findViewById(R.id.forecast_row_image) as ImageView // thumb image
+
+        // it can be called with data update or icon update
+        if(cursor?.columnCount == IconCacheContract.Icon.SELECT_ALL.size) {
+            // icon update
+            val iconId = cursor?.getString(DbSchema.Icon.COLUMNS_ID.COL_ICON_ID.ordinal)
+            val icon: Bitmap? = cache.getItem(iconId!!).item
+            icon?.let {
+                thumb_image.setImageBitmap(icon)
+            }
+            return
+        }
+
         val maxTemp = parent?.findViewById(R.id.forecast_max_temp) as TextView // title
         val minTemp = parent?.findViewById(R.id.forecast_min_temp) as TextView // artist name
         val dateTextView = parent?.findViewById(R.id.forecast_date) as TextView // duration
-        val thumb_image = parent?.findViewById(R.id.forecast_row_image) as ImageView // thumb image
 
         maxTemp.text = cursor?.getString(DbSchema.Weather.COLUMNS_ID.COL_TEMPERATURE_MAX.ordinal)
         minTemp.text = cursor?.getString(DbSchema.Weather.COLUMNS_ID.COL_TEMPERATURE_MIN.ordinal)

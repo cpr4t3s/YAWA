@@ -1,15 +1,13 @@
 package com.isel.pdm.yawa
 
-import android.app.AlarmManager
 import android.app.LoaderManager
-import android.app.Notification
-import android.app.PendingIntent
 import android.content.*
 import android.database.Cursor
 import android.net.Uri
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
-import android.os.SystemClock
+import android.os.Handler
+import android.os.Looper
 import android.preference.PreferenceManager
 import android.support.design.widget.NavigationView
 import android.support.v4.widget.DrawerLayout
@@ -20,7 +18,7 @@ import android.view.*
 import android.widget.*
 import com.isel.pdm.yawa.fragments.WeatherDetailsFragment
 import com.isel.pdm.yawa.openweather_tools.OpenWeatherParser
-import com.isel.pdm.yawa.provider.IconItem
+import com.isel.pdm.yawa.provider.IconCacheContract
 import com.isel.pdm.yawa.provider.WeatherContract
 import com.isel.pdm.yawa.service.WeatherService
 
@@ -31,6 +29,7 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor>,
     private var subMenu : SubMenu? =null
     private var lastBackTime: Long = 0
     private val txtTitleCity by lazy { findViewById(R.id.txtTitleCity) as TextView }
+    private val weatherIconView by lazy { findViewById(R.id.imageViewWeatherState) as ImageView }
     private val weatherFragment by lazy { fragmentManager.findFragmentById(R.id.weather_detail)
             as WeatherDetailsFragment }
     private val navigationView by lazy { findViewById(R.id.navigation_main_view) as NavigationView? }
@@ -38,17 +37,17 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor>,
     private val swR by lazy { findViewById(R.id.current_weather_swiperefresh) as SwipeRefreshLayout }
     //
     private val updateDoneReceiver: BroadcastReceiver = object: BroadcastReceiver() {
+        private val hnd: Handler = Handler(Looper.getMainLooper())
 
         override fun onReceive(context: Context, intent: Intent) {
             if (intent.action == YAWA.REFRESH_WEATHER_DONE_ACTION) {
-                // TODO: possível problema de concorrencia
-                this@MainActivity.runOnUiThread {
-                    this@MainActivity.swR.isRefreshing = false
-                }
+                this@MainActivity.swR.isRefreshing = false
 
-                val errTag: String = "errMsg"
-                if(intent.hasExtra(errTag)) {
-                    Toast.makeText(this@MainActivity, intent.getStringExtra(errTag), Toast.LENGTH_SHORT).show()
+                hnd.post {
+                    val errTag: String = "errMsg"
+                    if(intent.hasExtra(errTag)) {
+                        Toast.makeText(this@MainActivity, intent.getStringExtra(errTag), Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
         }
@@ -75,12 +74,9 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor>,
 
         // initiate our loader
         loaderManager.initLoader(YAWA.WEATHER_LOADER_ID, null, this)
+        //loaderManager.initLoader(YAWA.WEATHER_ICON_LOADER_ID, null, this)
 
 
-//        val cr = contentResolver
-//        val outputStream = cr.openOutputStream(Uri.withAppendedPath(IconItem.CONTENT_URI, "10"))
-//        outputStream.write("bolassss string de teste".toByteArray())
-//        outputStream.close()
         val menu = navigationView?.menu
         subMenu= menu?.addSubMenu(R.string.actionbar_label_cities)
     }
@@ -190,26 +186,39 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor>,
         Log.e(YAWA.YAWA_ERROR_TAG, "---------- MainActivity.onCreateLoader")
         val city = PreferenceManager.getDefaultSharedPreferences(applicationContext).
                 getString(application.settingsLocationStr, application.defaultLocation)
-        val selectionClause: String =
-                WeatherContract.Weather.CITY_ID + " = ? AND " + WeatherContract.Weather.CURRENT + " = ?"
 
+        val projection: Array<String>
+        val selectionArgs: Array<String>?
+        val selectionClause: String?
+        val uri: Uri
         when (id) {
             YAWA.WEATHER_LOADER_ID -> {
-                val selectionArgs = arrayOf(city, YAWA.CURRENT_WEATHER_FLAG.toString())
-                return CursorLoader(
-                        this,
-                        WeatherContract.Weather.CONTENT_URI,
-                        WeatherContract.Weather.SELECT_ALL,
-                        selectionClause,
-                        selectionArgs,
-                        null
-                )
+                projection = WeatherContract.Weather.SELECT_ALL
+                selectionArgs = arrayOf(city, YAWA.CURRENT_WEATHER_FLAG.toString())
+                selectionClause = WeatherContract.Weather.CITY_ID + " = ? AND " + WeatherContract.Weather.CURRENT + " = ?"
+                uri = WeatherContract.Weather.CONTENT_URI
+            }
+            YAWA.WEATHER_ICON_LOADER_ID -> {
+                projection = IconCacheContract.Icon.SELECT_ALL
+                selectionArgs = null
+                selectionClause = null
+                uri = IconCacheContract.Icon.CONTENT_URI
             }
             else -> {
                 Log.w(YAWA.YAWA_WARN_TAG, "Unknown id for loader on onCreateLoader")
                 throw IllegalArgumentException("id")
             }
         }
+
+
+        return CursorLoader(
+                this,
+                uri,
+                projection,
+                selectionClause,
+                selectionArgs,
+                null
+        )
     }
 
     override fun onLoadFinished(loader: Loader<Cursor>?, cursor: Cursor?) {
@@ -218,9 +227,17 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor>,
             YAWA.WEATHER_LOADER_ID -> {
                 if (cursor != null) {
                     // updates weather data
-                    val weatherState = OpenWeatherParser.parseWeatherState(cursor, application.cacheResolver)
+                    val weatherState = OpenWeatherParser.parseWeatherState(cursor, application.cacheResolver, applicationContext)
                     // TODO: necessario actualizar na UI Thread?
                     runOnUiThread { weatherFragment.updateUI(weatherState) }
+                }
+            }
+            YAWA.WEATHER_ICON_LOADER_ID -> {
+                if (cursor != null) {
+                    // updates weather data
+                    val weatherStateIcon = OpenWeatherParser.getIconFromCursor(cursor, application.cacheResolver, applicationContext)
+                    // TODO: necessario actualizar na UI Thread?
+                    runOnUiThread { weatherIconView.setImageBitmap(weatherStateIcon) }
                 }
             }
             else -> {

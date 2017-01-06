@@ -2,6 +2,7 @@ package com.isel.pdm.yawa.tools
 
 import android.content.ContentResolver
 import android.content.ContentValues
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
@@ -9,7 +10,11 @@ import android.provider.BaseColumns
 import android.util.LruCache
 import com.isel.pdm.yawa.provider.DbSchema
 import com.isel.pdm.yawa.provider.IconCacheContract
+import com.isel.pdm.yawa.provider.WeatherContract
 import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.FileNotFoundException
+import java.io.FileOutputStream
 
 
 /**
@@ -17,15 +22,21 @@ import java.io.ByteArrayOutputStream
  *
  * if 'cacheSize' == 0, use default size
  */
-class CacheResolver<T>(cacheSize: Int, private val l2Cache: ContentResolver, private val uri: Uri): ICacheSystem<T> {
+class CacheResolver<T>(cacheSize: Int, private val l2Cache: ContentResolver, private val uri: Uri, val context: Context): ICacheSystem<T> {
     companion object {
         val MEGABYTE_UNIT: Int = 1024
-        // size in KB
-        val DEFAULT_MEMORY_CACHE_SIZE: Int = 2 // 2KB
+        val DEFAULT_MEMORY_CACHE_SIZE: Int = 2
         //
+        val CACHE_DIR_NAME = "icon"
         val FILE_EXTENTION = ".png"
     }
 
+    init {
+        // init dirs
+        val path = File(context.cacheDir.toString(), CACHE_DIR_NAME)
+        if(!path.exists())
+            path.mkdirs()
+    }
 
 
     private val l1Cache by lazy {
@@ -53,9 +64,9 @@ class CacheResolver<T>(cacheSize: Int, private val l2Cache: ContentResolver, pri
         l1Cache.put(item.key, item.item)
         // L2
         if(exists(item.key).size != 0) return
-        // TODO: desconmentar
-        //putOnDb(item)
-        //putOnFS(item)
+        //
+        if(putOnFS(item))
+            putOnDb(item)
     }
 
     private fun putOnDb(item: ICacheSystem.CacheEntry<T>) {
@@ -64,29 +75,28 @@ class CacheResolver<T>(cacheSize: Int, private val l2Cache: ContentResolver, pri
         newValues.put(IconCacheContract.Icon.EXPIRES_AT, item.expiresAt)
         l2Cache.insert(uri, newValues)
     }
-    private fun putOnFS(item: ICacheSystem.CacheEntry<T>) {
+    private fun putOnFS(item: ICacheSystem.CacheEntry<T>): Boolean {
         val fileUri = Uri.withAppendedPath(uri, "${item.key}$FILE_EXTENTION")
         val outStream = l2Cache.openOutputStream(fileUri, "w")
-
         val img = item.item as Bitmap
-//        val size = img.byteCount
-//
-//        val buffer: ByteBuffer = ByteBuffer.allocate(size)
-//        img.copyPixelsToBuffer(buffer)
-//        outStream.write(buffer.array())
-//        outStream.flush()
-//
-//        outStream.close()
 
+        val success = img.compress(Bitmap.CompressFormat.PNG, 100, outStream)
+        outStream.flush()
+        outStream.close()
 
-
-        img.compress(Bitmap.CompressFormat.PNG, 100, outStream) // saving the Bitmap to a file compressed as a JPEG with 85% compression rate
-        outStream.flush() // Not really required
-        outStream.close() // do not forget to close the stream
+        return success
     }
 
     private fun getFromFs(key: String): T {
         val fileUri = Uri.withAppendedPath(uri, "$key$FILE_EXTENTION")
+        // Verify if the file still exist. If not, delete the DB entry for it
+        val root = context.cacheDir
+        val cacheFile = File(root, fileUri.encodedPath)
+        if(!cacheFile.exists()) {
+            removeItemEntry(key)
+            throw FileNotFoundException()
+        }
+
         val inStream = l2Cache.openInputStream(fileUri)
 
         val byteBuffer = ByteArrayOutputStream()
@@ -102,8 +112,6 @@ class CacheResolver<T>(cacheSize: Int, private val l2Cache: ContentResolver, pri
             size += len
         }
 
-
-        //val img: Bitmap = BitmapFactory.decodeStream(inStream)
         val img: Bitmap? = BitmapFactory.decodeByteArray(byteBuffer.toByteArray(), 0, size)
 
         return img as T
@@ -131,5 +139,11 @@ class CacheResolver<T>(cacheSize: Int, private val l2Cache: ContentResolver, pri
         cursor.close()
 
         return existingIds
+    }
+
+    private fun removeItemEntry(key: String) {
+        val whereClause = "${IconCacheContract.Icon.ICON_ID} = ?"
+        val selectionArgs = arrayOf(key)
+        l2Cache.delete(IconCacheContract.Icon.CONTENT_URI, whereClause, selectionArgs)
     }
 }

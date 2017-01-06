@@ -140,7 +140,7 @@ class WeatherProvider : ContentProvider() {
         }
 
         val db = dbHelper!!.writableDatabase
-        val ndel = db.delete(table, null, null)
+        val ndel = db.delete(table, selection, selectionArgs)
 
         context.contentResolver.notifyChange(uri, null)
         return ndel
@@ -152,10 +152,12 @@ class WeatherProvider : ContentProvider() {
 //        val file = File(root, uri.encodedPath)
 //        //root.mkdirs()
 //        //val file = File(path, uri.lastPathSegment)
+
+
         val root = context.cacheDir
-        val path = File(root, uri.getEncodedPath())
-        path.mkdirs()
-        val file = File(path, "file_"+uri.getLastPathSegment())
+        val file = File(root, uri.getEncodedPath())
+        //path.mkdirs()
+        //val file = File(path, "file_"+uri.getLastPathSegment())
 
         var imode = 0
         if (mode.contains("w")) {

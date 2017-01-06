@@ -40,6 +40,7 @@ class YAWA : Application() {
         // Loaders
         val WEATHER_LOADER_ID = 1
         val FORECAST_LOADER_ID = 2
+        val WEATHER_ICON_LOADER_ID = 4
         //
         val NOTIFICATIONS_INTENT_ID = 0
         //
@@ -52,7 +53,7 @@ class YAWA : Application() {
     class GenericTime(val hour: Int, val minutes: Int) {}
 
     val weatherManager by lazy { WeatherManager(this, OpenWeatherRequester(this, cacheResolver)) }
-    val cacheResolver by lazy { CacheResolver<Bitmap>(CACHE_MAX_SIZE, contentResolver, IconCacheContract.Icon.CONTENT_URI) }
+    val cacheResolver by lazy { CacheResolver<Bitmap>(CACHE_MAX_SIZE, contentResolver, IconCacheContract.Icon.CONTENT_URI, applicationContext) }
     //
     val defaultLocation: String by lazy { resources.getString(R.string.default_location) }
     val defaultForecastDays: Int by lazy { resources.getString(R.string.default_forecast_days).toInt() }
