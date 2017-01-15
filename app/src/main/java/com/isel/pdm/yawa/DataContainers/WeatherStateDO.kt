@@ -17,6 +17,7 @@ class WeatherStateDO (
         val windSpeed: Double,
         val windDegree: Double,
         val updateDate: Long,
-        val forecastDate: Long
+        val forecastDate: Long,
+        val cityName: String = "-"
 )
 { }

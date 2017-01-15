@@ -27,7 +27,8 @@
     <string name="number3">Número: 40842</string>
     <string name="person3">Auto: Tiago Oliveira</string>
     <string name="credits">Créditos</string>
-    <string name="settings_settings">Preferências</string>
+    <string name="settings_location">Ver na Minha Localização</string>
+    <string name="settings_settings">Definições</string>
     <string name="settings_temp_units_title">Temperatura - Unidades</string>
     <string name="kelvin">Kelvin</string>
     <string name="celsius">Celsius</string>

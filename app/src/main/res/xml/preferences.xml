@@ -32,13 +32,13 @@
         app:number_picker_min_val= "1"
         app:number_picker_max_val= "16"/>
 
-    <PreferenceCategory android:title="@string/settings_battery_separator" >
-        <CheckBoxPreference
-            android:key="@string/settings_only_wifi_str"
-            android:title="@string/settings_only_wifi_title"
-            android:summary="@string/settings_only_wifi_summary"
-            android:defaultValue="true" />
+    <CheckBoxPreference
+        android:key="@string/settings_only_wifi_str"
+        android:title="@string/settings_only_wifi_title"
+        android:summary="@string/settings_only_wifi_summary"
+        android:defaultValue="true" />
 
+    <PreferenceCategory android:title="@string/settings_battery_separator" >
         <com.isel.pdm.yawa.UI.NumberPickerPreference
             android:key="@string/settings_battery_min_str"
             android:title="@string/settings_min_battery_title"

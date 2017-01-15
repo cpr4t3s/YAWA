@@ -4,4 +4,5 @@
     <string name="error1002">Não foi possível realizar a pesquisa!</string>
     <string name="error1003">Não foi possível terminar a operação!</string>
     <string name="error1004">Previsão do tempo indisponível!</string>
+    <string name="error1005">Não foi possível determinar o tempo pelas coordenadas!</string>
 </resources>

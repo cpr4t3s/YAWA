@@ -25,10 +25,16 @@ class BootCompleteReceiver: BroadcastReceiver() {
  * Service responsible for updating weather state
  */
 class WeatherService: Service() {
+    companion object {
+        val COORD_LATITUDE_KEY: String = "lat_key"
+        val COORD_LONGITUDE_KEY: String = "lon_key"
+    }
+
     private var mServiceLooper: Looper? = null
     private var mServiceHandler: ServiceHandler? = null
     private var updatingCurrentWeather: Boolean = false
     private var updatingForecastWeather: Boolean = false
+    private var updatingCoordWeather: Boolean = false
     private val onlyWifiSettingStr by lazy {resources.getString(R.string.settings_only_wifi_str)}
     private val defaultWifiSettingsValue by lazy {resources.getBoolean(R.bool.default_only_wifi_setting)}
     private val minBatteryPercentStr by lazy {resources.getString(R.string.settings_battery_min_str)}
@@ -44,6 +50,8 @@ class WeatherService: Service() {
                 val intent = Intent(YAWA.REFRESH_WEATHER_DONE_ACTION)
                 intent.putExtra("errMsg", errorStr)
                 sendBroadcast(intent)
+
+                updatingCurrentWeather = false
             }
 
             override fun onSucceed(response: Any?) {
@@ -64,14 +72,41 @@ class WeatherService: Service() {
                 val intent = Intent(YAWA.REFRESH_WEATHER_DONE_ACTION)
                 intent.putExtra("errMsg", resources.getString(R.string.error1004))
                 sendBroadcast(intent)
+
+                updatingForecastWeather = false
             }
 
             override fun onSucceed(response: Any?) {
                 Log.e(YAWA.YAWA_INFO_TAG, "------ forecastWeatherCallbackSet")
-                // TODO: esta variavel é alterada por varias threads... Perguntar o que se deve fazer
-                updatingForecastWeather = false
                 // Notify activities waiting for update completion
                 sendBroadcast(Intent(YAWA.REFRESH_WEATHER_DONE_ACTION))
+
+                // TODO: esta variavel é alterada por varias threads... Perguntar o que se deve fazer
+                updatingForecastWeather = false
+            }
+        }
+    }
+
+    private val coordWeatherCallbackSet : ICallbackSet by lazy {
+        object : ICallbackSet {
+            override fun onError(error: VolleyError) {
+                Log.e(YAWA.YAWA_ERROR_TAG, resources.getString(R.string.error1001))
+                Log.e(YAWA.YAWA_ERROR_TAG, error.message)
+                // Notify activities waiting for update completion
+                val intent = Intent(YAWA.REFRESH_WEATHER_DONE_ACTION)
+                intent.putExtra("errMsg", resources.getString(R.string.error1005))
+                sendBroadcast(intent)
+
+                updatingCoordWeather = false
+            }
+
+            override fun onSucceed(response: Any?) {
+                Log.e(YAWA.YAWA_INFO_TAG, "coordWeatherCallbackSet")
+                // Notify activities waiting for update completion
+                sendBroadcast(Intent(YAWA.REFRESH_WEATHER_DONE_ACTION))
+
+                // TODO: esta variavel é alterada por varias threads... Perguntar o que se deve fazer
+                updatingCoordWeather = false
             }
         }
     }
@@ -160,6 +195,7 @@ class WeatherService: Service() {
             }
             YAWA.UPDATE_CURRENT_WEATHER_ACTION -> { updateCurrentWeather(startId) }
             YAWA.UPDATE_FORECAST_WEATHER_ACTION -> { updateForecastWeather(startId) }
+            YAWA.UPDATE_COORD_WEATHER_ACTION -> { updateCoordWeather(intent, startId) }
         }
 
         // If we get killed, after returning from here, restart with the same intent
@@ -183,6 +219,26 @@ class WeatherService: Service() {
                 val _startId = startId
                 try {
                     application.weatherManager.updateForecastWeather(forecastWeatherCallbackSet)
+                } catch (e: InterruptedException) {
+                    // Restore interrupt status.
+                    Thread.currentThread().interrupt()
+                }
+                stopSelf(_startId)
+            }
+        }
+    }
+
+    private fun updateCoordWeather(intent: Intent?, startId: Int) {
+        if(!updatingCoordWeather) {
+            updatingCoordWeather = true
+
+            val lat = intent?.getDoubleExtra(COORD_LATITUDE_KEY, 0.0)
+            val lon = intent?.getDoubleExtra(COORD_LONGITUDE_KEY, 0.0)
+
+            mServiceHandler?.post {
+                val _startId = startId
+                try {
+                    application.weatherManager.updateWeatherByCoord(lat!!, lon!!, coordWeatherCallbackSet)
                 } catch (e: InterruptedException) {
                     // Restore interrupt status.
                     Thread.currentThread().interrupt()

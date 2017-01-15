@@ -53,7 +53,6 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor>,
         }
     }
 
-
     private fun updateCurrentWeather() {
         val updateWeatherIntent: Intent = Intent(this, WeatherService::class.java)
         updateWeatherIntent.action = YAWA.UPDATE_CURRENT_WEATHER_ACTION
@@ -160,6 +159,7 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor>,
             R.id.settings_about -> startActivity(Intent(this, AboutActivity::class.java))
             // Information about the application
             R.id.settings_settings -> startActivity(Intent(this, SettingsActivity::class.java))
+            R.id.settings_location -> startActivity(Intent(this, GPSActivity::class.java))
         }
         return true
     }
@@ -222,7 +222,6 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor>,
     }
 
     override fun onLoadFinished(loader: Loader<Cursor>?, cursor: Cursor?) {
-        Log.e(YAWA.YAWA_ERROR_TAG, "---------- MainActivity.onLoadFinished")
         when(loader?.id) {
             YAWA.WEATHER_LOADER_ID -> {
                 if (cursor != null) {

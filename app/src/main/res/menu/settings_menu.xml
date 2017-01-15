@@ -10,6 +10,9 @@
         android:id="@+id/settings_refresh"
         android:title="@string/settings_refresh"/>
 
+    <item android:id="@+id/settings_location"
+        android:title="@string/settings_location"/>
+
     <item android:id="@+id/settings_settings"
         android:title="@string/settings_settings"/>
 

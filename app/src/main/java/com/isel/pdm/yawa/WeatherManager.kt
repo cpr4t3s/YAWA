@@ -42,6 +42,7 @@ class WeatherManager constructor(context: Context, val requester: IRequestParser
         private val WEATHER_REQUEST_TAG = "weatherReq"
         private val WEATHER_SEARCH_CITY_TAG = "cityListReq"
         private val FORECAST_CITY_BY_ID_TAG = "forecastReq"
+        private val WEATHER_BY_COORD_REQUEST_TAG = "weatherReq"
     }
 
 
@@ -55,9 +56,17 @@ class WeatherManager constructor(context: Context, val requester: IRequestParser
                 WeatherContract.Weather.CITY_ID,
                 WeatherContract.Weather.CURRENT
         )
-        val selectionClause: String =
-                WeatherContract.Weather.CITY_ID + " = ? AND " + WeatherContract.Weather.CURRENT + " = ?"
-        val selectionArgs = arrayOf(city, current.toString())
+
+        val selectionClause: String
+        val selectionArgs: Array<String>
+        if(city == "*") {
+            selectionClause = WeatherContract.Weather.CURRENT + " = ?"
+            selectionArgs = arrayOf(current.toString())
+        } else {
+            selectionClause =
+                    WeatherContract.Weather.CITY_ID + " = ? AND " + WeatherContract.Weather.CURRENT + " = ?"
+            selectionArgs = arrayOf(city, current.toString())
+        }
         //
         val cursor = context.contentResolver.query(
                 WeatherContract.Weather.CONTENT_URI,
@@ -74,10 +83,6 @@ class WeatherManager constructor(context: Context, val requester: IRequestParser
         return existingIds
     }
 
-    private fun saveCurrentWeatherIcon(image: Bitmap) {
-        // TODO
-    }
-
     private fun saveCurrentWeather(weather: WeatherStateDO) {
         val sharedPref = PreferenceManager.getDefaultSharedPreferences(context.applicationContext)
         val city = sharedPref.getString(settingsLocationStr, defaultLocation)
@@ -90,6 +95,30 @@ class WeatherManager constructor(context: Context, val requester: IRequestParser
         if(countExisting(city, YAWA.CURRENT_WEATHER_FLAG).size == 0) {
             mNewValues.put(WeatherContract.Weather.CITY_ID, city)
             mNewValues.put(WeatherContract.Weather.CURRENT, YAWA.CURRENT_WEATHER_FLAG)
+            context.contentResolver.insert(
+                    WeatherContract.Weather.CONTENT_URI,
+                    mNewValues
+            )
+        } else {
+            context.contentResolver.update(
+                    WeatherContract.Weather.CONTENT_URI,
+                    mNewValues,
+                    selectionClause,
+                    selectionArgs
+            )
+        }
+    }
+
+    private fun saveCoordWeather(weather: WeatherStateDO) {
+        val city = weather.cityName
+        val selectionClause: String = WeatherContract.Weather.CURRENT + " = ?"
+        val selectionArgs = arrayOf(YAWA.COORD_WEATHER_FLAG.toString())
+
+        val mNewValues = buildCommonNewValues(weather)
+
+        if(countExisting("*", YAWA.COORD_WEATHER_FLAG).size == 0) {
+            mNewValues.put(WeatherContract.Weather.CITY_ID, city)
+            mNewValues.put(WeatherContract.Weather.CURRENT, YAWA.COORD_WEATHER_FLAG)
             context.contentResolver.insert(
                     WeatherContract.Weather.CONTENT_URI,
                     mNewValues
@@ -176,8 +205,6 @@ class WeatherManager constructor(context: Context, val requester: IRequestParser
                             Log.e(YAWA.YAWA_ERROR_TAG, error.message)
                         }
                         override fun onSucceed(response: Any?) {
-                            if(response != null)
-                                saveCurrentWeatherIcon(response as Bitmap)
                         }
 
                     })
@@ -297,7 +324,6 @@ class WeatherManager constructor(context: Context, val requester: IRequestParser
                         weatherDO.weatherIconID,
                         object: ICallbackSet {
                             override fun onError(error: VolleyError) {
-                                Log.e("!!!", "--------------- ERRO    updateForecastWeather")
                                 println(error.message)
                             }
 
@@ -339,5 +365,25 @@ class WeatherManager constructor(context: Context, val requester: IRequestParser
         cursor.close()
 
         return weatherState
+    }
+
+    fun updateWeatherByCoord(lat: Double, lon: Double, callbackSet : ICallbackSet?) {
+        val url = URLTranslator.getWeatherByCoordURL(lat, lon, this.context)
+
+        val jsObjRequest = JsonObjectRequest(Request.Method.GET, url, null, Response.Listener<org.json.JSONObject> { response ->
+            val weatherState = OpenWeatherParser.parseWeatherState(response)
+            // Stores the weather on the content provider
+            saveCoordWeather(weatherState)
+            callbackSet?.onSucceed(weatherState)
+
+        }, Response.ErrorListener { error ->
+            Log.e(YAWA.YAWA_ERROR_TAG, "Error on 'updateWeatherByCoord()'.\n" + error.message)
+            callbackSet?.onError(error)
+        })
+
+        // add a TAG to easily cancel the request if necessary
+        jsObjRequest.tag = WEATHER_BY_COORD_REQUEST_TAG
+        //
+        this.requester.addRequest(jsObjRequest)
     }
 }

@@ -31,7 +31,16 @@ object OpenWeatherParser {
         }
     }
 
-    private fun buildWeatherStateDO(weather: JSONObject, weatherDescription: JSONObject, wind: JSONObject) : WeatherStateDO {
+    private fun getStringFromJSONObject(obj: JSONObject, key: String): String {
+        try {
+            return obj.getString(key)
+        }
+        catch (e: JSONException) {
+            return ""
+        }
+    }
+
+    private fun buildWeatherStateDO(root: JSONObject, weather: JSONObject, weatherDescription: JSONObject, wind: JSONObject) : WeatherStateDO {
         return WeatherStateDO(
                 weatherDescription.getString("main"),
                 weatherDescription.getString("description"),
@@ -47,7 +56,8 @@ object OpenWeatherParser {
                 getDoubleFromJSONObject(wind, "speed"),
                 getDoubleFromJSONObject(wind, "deg"),
                 System.currentTimeMillis() / 1000L,
-                0
+                0,
+                cityName = getStringFromJSONObject(root, "name")
         )
     }
     private fun buildWeatherStateDOForForecast(root: JSONObject,temp: JSONObject, weather: JSONObject) : WeatherStateDO {
@@ -74,7 +84,7 @@ object OpenWeatherParser {
         val weather: JSONObject = jsonObject.getJSONObject("main")
         val weatherDescription: JSONObject = jsonObject.getJSONArray("weather").get(0) as JSONObject
         val wind: JSONObject = jsonObject.getJSONObject("wind")
-        return buildWeatherStateDO(weather, weatherDescription, wind)
+        return buildWeatherStateDO(jsonObject, weather, weatherDescription, wind)
     }
     fun parseWeatherState(data: Cursor, cache: ICacheSystem<Bitmap>, context: Context): WeatherStateDO {
         val weatherState: WeatherStateDO?
@@ -97,7 +107,8 @@ object OpenWeatherParser {
                     data.getDouble(DbSchema.Weather.COLUMNS_ID.COL_WIND_SPEED.ordinal),
                     data.getDouble(DbSchema.Weather.COLUMNS_ID.COL_WIND_DEGREES.ordinal),
                     data.getLong(DbSchema.Weather.COLUMNS_ID.COL_LAST_UPDATE.ordinal),
-                    data.getLong(DbSchema.Weather.COLUMNS_ID.COL_FORECAST_DATE.ordinal)
+                    data.getLong(DbSchema.Weather.COLUMNS_ID.COL_FORECAST_DATE.ordinal),
+                    cityName = data.getString(DbSchema.Weather.COLUMNS_ID.COL_CITY_ID.ordinal)
             )
         }
         // Create a dummy weather
@@ -145,7 +156,7 @@ object OpenWeatherParser {
             val weather: JSONObject = t.getJSONObject("main")
             val weatherDescription: JSONObject = t.getJSONArray("weather").get(0) as JSONObject
             val wind: JSONObject = t.getJSONObject("wind")
-            val wState: WeatherStateDO = buildWeatherStateDO(weather, weatherDescription, wind)
+            val wState: WeatherStateDO = buildWeatherStateDO(jsonObject, weather, weatherDescription, wind)
 
             // Build City DO
             val sysObj: JSONObject = t.getJSONObject("sys")
