@@ -29,7 +29,6 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor>,
     private var subMenu : SubMenu? =null
     private var lastBackTime: Long = 0
     private val txtTitleCity by lazy { findViewById(R.id.txtTitleCity) as TextView }
-    private val weatherIconView by lazy { findViewById(R.id.imageViewWeatherState) as ImageView }
     private val weatherFragment by lazy { fragmentManager.findFragmentById(R.id.weather_detail)
             as WeatherDetailsFragment }
     private val navigationView by lazy { findViewById(R.id.navigation_main_view) as NavigationView? }
@@ -73,7 +72,7 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor>,
 
         // initiate our loader
         loaderManager.initLoader(YAWA.WEATHER_LOADER_ID, null, this)
-        //loaderManager.initLoader(YAWA.WEATHER_ICON_LOADER_ID, null, this)
+        loaderManager.initLoader(YAWA.WEATHER_ICON_LOADER_ID, null, this)
 
 
         val menu = navigationView?.menu
@@ -103,9 +102,11 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor>,
 
     override fun onBackPressed() {
         // close navigation bar if its opened
-        if (drawerLayout.isDrawerOpen(navigationView)) {
-            drawerLayout.closeDrawer(navigationView)
-            return
+        if(navigationView != null) {
+            if (drawerLayout.isDrawerOpen(navigationView)) {
+                drawerLayout.closeDrawer(navigationView)
+                return
+            }
         }
 
         if (System.currentTimeMillis() - this.lastBackTime < this.BACK_PRESS_INTERVAL) {
@@ -233,10 +234,8 @@ class MainActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor>,
             }
             YAWA.WEATHER_ICON_LOADER_ID -> {
                 if (cursor != null) {
-                    // updates weather data
-                    val weatherStateIcon = OpenWeatherParser.getIconFromCursor(cursor, application.cacheResolver, applicationContext)
-                    // TODO: necessario actualizar na UI Thread?
-                    runOnUiThread { weatherIconView.setImageBitmap(weatherStateIcon) }
+                    //
+                    contentResolver.notifyChange(WeatherContract.Weather.CONTENT_URI, null)
                 }
             }
             else -> {

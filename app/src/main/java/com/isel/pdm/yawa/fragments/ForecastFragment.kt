@@ -17,6 +17,7 @@ import android.widget.AdapterView
 import android.widget.Toast
 import com.isel.pdm.yawa.*
 import com.isel.pdm.yawa.UI.ForecastCursorAdapter
+import com.isel.pdm.yawa.provider.IconCacheContract
 import com.isel.pdm.yawa.provider.WeatherContract
 import com.isel.pdm.yawa.service.WeatherService
 
@@ -95,6 +96,7 @@ class ForecastFragment : ListFragment(), LoaderManager.LoaderCallbacks<Cursor> {
 
         // initiate our loader
         loaderManager.initLoader(YAWA.FORECAST_LOADER_ID, null, this)
+        loaderManager.initLoader(YAWA.WEATHER_ICON_LOADER_ID, null, this)
     }
 
     /**
@@ -138,6 +140,16 @@ class ForecastFragment : ListFragment(), LoaderManager.LoaderCallbacks<Cursor> {
                         order
                 )
             }
+            YAWA.WEATHER_ICON_LOADER_ID -> {
+                return CursorLoader(
+                        activity,
+                        IconCacheContract.Icon.CONTENT_URI,
+                        IconCacheContract.Icon.SELECT_ALL,
+                        null,
+                        null,
+                        IconCacheContract.Icon.DEFAULT_SORT_ORDER
+                )
+            }
             else -> {
                 Log.w(YAWA.YAWA_WARN_TAG, "Unknown id for loader on onCreateLoader")
                 throw IllegalArgumentException("id")
@@ -149,6 +161,12 @@ class ForecastFragment : ListFragment(), LoaderManager.LoaderCallbacks<Cursor> {
         when(loader?.id) {
             YAWA.FORECAST_LOADER_ID -> {
                 weatherAdapter.changeCursor(cursor)
+            }
+            YAWA.WEATHER_ICON_LOADER_ID -> {
+                if (cursor != null) {
+                    //
+                    activity.contentResolver.notifyChange(WeatherContract.Weather.CONTENT_URI, null)
+                }
             }
             else -> {
                 Log.w(YAWA.YAWA_WARN_TAG, "Unknown id for loader on onLoadFinished")

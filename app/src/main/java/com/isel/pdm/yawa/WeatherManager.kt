@@ -197,8 +197,6 @@ class WeatherManager constructor(context: Context, val requester: IRequestParser
             saveCurrentWeather(weatherState)
             callbackSet?.onSucceed(weatherState)
             // Get the icon
-            // TODO: Possivelmente tem de se passar as imagens para um BD independente para podermos fazer cache
-            // TODO: corrigir depois de se saber como serão as caches
             this@WeatherManager.getWeatherIcon(weatherState.weatherIconID,
                     object: ICallbackSet {
                         override fun onError(error: VolleyError) {
@@ -280,7 +278,6 @@ class WeatherManager constructor(context: Context, val requester: IRequestParser
      * Get icons bitmap. Only call onSucceed when last == true
      */
     private fun getWeatherIconForForecast(iconID: String, callbackSet : ICallbackSet, index: Int) {
-        //TODO: cache
         val imageLoader = this.requester.getImgLoader()
 
         val url = URLTranslator.getWeatherIconURL(this.context, iconID)
@@ -288,7 +285,6 @@ class WeatherManager constructor(context: Context, val requester: IRequestParser
                 url,
                 object : ImageLoader.ImageListener {
                     override fun onResponse(response: ImageLoader.ImageContainer, isImmediate: Boolean) {
-                        //response.bitmap?.let { setForegroundWeatherIcon(response.bitmap, index) }
                         callbackSet.onSucceed(response.bitmap)
                     }
 
@@ -316,7 +312,6 @@ class WeatherManager constructor(context: Context, val requester: IRequestParser
             saveForecastWeather(forecastWeather)
             callbackSet?.onSucceed(forecastWeather)
 
-            // TODO: corrigir depois de saber como devem ser as caches
             // Get all the weather icons bitmap for each day in forecast
             var idx = 0
             for(weatherDO in forecastWeather.weatherStateDOList) {
@@ -328,7 +323,7 @@ class WeatherManager constructor(context: Context, val requester: IRequestParser
                             }
 
                             override fun onSucceed(response: Any?) {
-                                Log.e("!!!", "--------------- SUCESSO   updateForecastWeather")
+                                Log.i(YAWA.YAWA_INFO_TAG, "Icon downloaded")
                             }
 
                         },
@@ -375,7 +370,17 @@ class WeatherManager constructor(context: Context, val requester: IRequestParser
             // Stores the weather on the content provider
             saveCoordWeather(weatherState)
             callbackSet?.onSucceed(weatherState)
+            // Get the icon
+            this@WeatherManager.getWeatherIcon(weatherState.weatherIconID,
+                    object: ICallbackSet {
+                        override fun onError(error: VolleyError) {
+                            Log.e(YAWA.YAWA_ERROR_TAG, error.message)
+                        }
+                        override fun onSucceed(response: Any?) {
+                            Log.i(YAWA.YAWA_INFO_TAG, "updateWeatherByCoord succeed!")
+                        }
 
+                    })
         }, Response.ErrorListener { error ->
             Log.e(YAWA.YAWA_ERROR_TAG, "Error on 'updateWeatherByCoord()'.\n" + error.message)
             callbackSet?.onError(error)

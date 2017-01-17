@@ -4,6 +4,9 @@ import android.app.AlertDialog
 import android.app.LoaderManager
 import android.content.*
 import android.database.Cursor
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.drawable.BitmapDrawable
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
@@ -25,6 +28,7 @@ import com.isel.pdm.yawa.provider.WeatherContract
 import com.isel.pdm.yawa.service.WeatherService
 import com.isel.pdm.yawa.tools.DateConverter
 import com.isel.pdm.yawa.tools.MetricsResolver
+import java.io.ByteArrayOutputStream
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -34,8 +38,18 @@ class GPSActivity : AppCompatActivity(), LocationListener, LoaderManager.LoaderC
         val MSG_WAITING_FOR_SERVICE: String = "Waiting for Service..."
         val MSG_NO_SIGNAL: String = "No Signal..."
         val MSG_NO_PROVIDER: String = "No Provider..."
-        val MIN_DISTANCE_TO_UPDATE: Float = 0f
-        val MIN_TIME_TO_UPDATE: Long = 0
+        val MIN_DISTANCE_TO_UPDATE: Float = 10000f // 10km
+        val MIN_TIME_TO_UPDATE: Long = 15 * 60 * 1000 // 15 minutos
+        //
+        val TITLE_KEY = "title_key"
+        val DATE_KEY = "date_key"
+        val DESCRIPTION_KEY = "desc_key"
+        val HUMIDITY_KEY = "humidity_key"
+        val TEMPCURR_KEY = "tcurr_key"
+        val TEMPMAX_KEY = "tmax_key"
+        val TEMPMIN_KEY = "tmin_key"
+        val WMAIN_KEY = "wmain_key"
+        val IMG_KEY = "img_key"
     }
     //
     private val updateDoneReceiver: BroadcastReceiver = object: BroadcastReceiver() {
@@ -44,6 +58,7 @@ class GPSActivity : AppCompatActivity(), LocationListener, LoaderManager.LoaderC
         override fun onReceive(context: Context, intent: Intent) {
             if (intent.action == YAWA.REFRESH_WEATHER_DONE_ACTION) {
                 this@GPSActivity.swR.isRefreshing = false
+                this@GPSActivity.updating = false
 
                 hnd.post {
                     val errTag: String = "errMsg"
@@ -61,6 +76,8 @@ class GPSActivity : AppCompatActivity(), LocationListener, LoaderManager.LoaderC
     var cityName: String = ""
     // GPS by default
     private var provider: String = LocationManager.GPS_PROVIDER
+    private var updating: Boolean = false
+    private var afterRotate: Boolean = false
 
     private fun setTitle(title: String) {
         (findViewById(R.id.txtGPSTitle) as TextView).text = title
@@ -107,6 +124,8 @@ class GPSActivity : AppCompatActivity(), LocationListener, LoaderManager.LoaderC
     private fun updateLocation(location: Location?) {
         if(location == null) return
 
+        updating = true
+        //
         val intent = Intent(this, WeatherService::class.java)
         intent.action = YAWA.UPDATE_COORD_WEATHER_ACTION
         intent.putExtra(WeatherService.COORD_LATITUDE_KEY, location.latitude)
@@ -156,15 +175,17 @@ class GPSActivity : AppCompatActivity(), LocationListener, LoaderManager.LoaderC
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         setContentView(R.layout.gps_activity_layout)
         // initiate our loader
         loaderManager.initLoader(YAWA.COORD_WEATHER_LOADER_ID, null, this)
-
         locationManager = this.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-
-        // check
-        updateProvider(true)
+        //
+        if(savedInstanceState == null) {
+            // check
+            updateProvider(true)
+        } else {
+            afterRotate = true
+        }
     }
 
     override fun onPause() {
@@ -181,13 +202,76 @@ class GPSActivity : AppCompatActivity(), LocationListener, LoaderManager.LoaderC
         val intentFilter = IntentFilter(YAWA.REFRESH_WEATHER_DONE_ACTION)
         registerReceiver(updateDoneReceiver, intentFilter)
 
-        if(updateProvider(false)) {
+        if(updateProvider(false) && !afterRotate && !updating) {
             locationManager?.requestLocationUpdates(
                     provider, MIN_TIME_TO_UPDATE, MIN_DISTANCE_TO_UPDATE, this)
             setTitle(MSG_WAITING_FOR_SERVICE)
         } else {
             setTitle(MSG_NO_PROVIDER)
         }
+
+        if(updating) swR.isRefreshing = true
+        if(afterRotate) setTitle(cityName)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putString(TITLE_KEY, cityName)
+        // Main state
+        var tmpTextView = findViewById(R.id.GPSWeatherMain) as TextView
+        outState.putString(WMAIN_KEY, tmpTextView.text.toString())
+        // Description
+        tmpTextView = findViewById(R.id.GPSWeatherDescription) as TextView
+        outState.putString(DESCRIPTION_KEY, tmpTextView.text.toString())
+        tmpTextView = findViewById(R.id.GPSWeatherhumidity) as TextView
+        outState.putString(HUMIDITY_KEY, tmpTextView.text.toString())
+        // we dont have Current Temp when in forecast
+        tmpTextView = findViewById(R.id.GPSWeatherTempCurrent) as TextView
+        outState.putString(TEMPCURR_KEY, tmpTextView.text.toString())
+        //
+        tmpTextView = findViewById(R.id.GPSWeatherTempMax) as TextView
+        outState.putString(TEMPMAX_KEY, tmpTextView.text.toString())
+        tmpTextView = findViewById(R.id.GPSWeatherTempMin) as TextView
+        outState.putString(TEMPMIN_KEY, tmpTextView.text.toString())
+        tmpTextView = findViewById(R.id.GPSLastUpdateTextView) as TextView
+        outState.putString(DATE_KEY, tmpTextView.text.toString())
+        //
+        val tmpImageView = findViewById(R.id.GPSImageViewWeatherState) as ImageView
+        val stream = ByteArrayOutputStream()
+        val bitMap = (tmpImageView.drawable as BitmapDrawable).bitmap
+        bitMap.compress(Bitmap.CompressFormat.PNG, 100, stream)
+        val byteArray = stream.toByteArray()
+        outState.putByteArray(IMG_KEY, byteArray)
+
+
+//        weatherState.weatherIcon.let {
+//            val tmpImageView = findViewById(R.id.GPSImageViewWeatherState) as ImageView
+//            tmpImageView.setImageBitmap(weatherState.weatherIcon)
+    }
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        cityName = savedInstanceState.getString(TITLE_KEY)
+        // Main state
+        var tmpTextView = findViewById(R.id.GPSWeatherMain) as TextView
+        tmpTextView.text = savedInstanceState.getString(WMAIN_KEY)
+        // Description
+        tmpTextView = findViewById(R.id.GPSWeatherDescription) as TextView
+        tmpTextView.text = savedInstanceState.getString(DESCRIPTION_KEY)
+        tmpTextView = findViewById(R.id.GPSWeatherhumidity) as TextView
+        tmpTextView.text = savedInstanceState.getString(HUMIDITY_KEY)
+        // we dont have Current Temp when in forecast
+        tmpTextView = findViewById(R.id.GPSWeatherTempCurrent) as TextView
+        tmpTextView.text = savedInstanceState.getString(TEMPCURR_KEY)
+        //
+        tmpTextView = findViewById(R.id.GPSWeatherTempMax) as TextView
+        tmpTextView.text = savedInstanceState.getString(TEMPMAX_KEY)
+        tmpTextView = findViewById(R.id.GPSWeatherTempMin) as TextView
+        tmpTextView.text = savedInstanceState.getString(TEMPMIN_KEY)
+        tmpTextView = findViewById(R.id.GPSLastUpdateTextView) as TextView
+        tmpTextView.text = savedInstanceState.getString(DATE_KEY)
+        //
+        val tmpImageView = findViewById(R.id.GPSImageViewWeatherState) as ImageView
+        val byteArray = savedInstanceState.getByteArray(IMG_KEY)
+        tmpImageView.setImageBitmap(BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size))
     }
 
     override fun onLocationChanged(location: Location) {
