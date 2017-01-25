@@ -241,11 +241,6 @@ class GPSActivity : AppCompatActivity(), LocationListener, LoaderManager.LoaderC
         bitMap.compress(Bitmap.CompressFormat.PNG, 100, stream)
         val byteArray = stream.toByteArray()
         outState.putByteArray(IMG_KEY, byteArray)
-
-
-//        weatherState.weatherIcon.let {
-//            val tmpImageView = findViewById(R.id.GPSImageViewWeatherState) as ImageView
-//            tmpImageView.setImageBitmap(weatherState.weatherIcon)
     }
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
@@ -310,7 +305,6 @@ class GPSActivity : AppCompatActivity(), LocationListener, LoaderManager.LoaderC
                 throw IllegalArgumentException("id")
             }
         }
-
 
         return CursorLoader(
                 this,
